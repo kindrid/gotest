@@ -1,6 +1,6 @@
 # GoTest
 
-[![Build Status](https://semaphoreci.com/api/v1/kindrid/gotest/branches/master/shields_badge.svg)](https://semaphoreci.com/kindrid/gotest)[![Issue Count](https://codeclimate.com/github/kindrid/gotest/badges/issue_count.svg)](https://codeclimate.com/github/kindrid/gotest)
+[![Build Status](https://semaphoreci.com/api/v1/kindrid/gotest/branches/master/shields_badge.svg)](https://semaphoreci.com/kindrid/gotest) [![Issue Count](https://codeclimate.com/github/kindrid/gotest/badges/issue_count.svg)](https://codeclimate.com/github/kindrid/gotest)
 
 Package gotest provides rich assertions for use within and beyond Go's `testing` package.
 
