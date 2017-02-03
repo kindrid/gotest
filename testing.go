@@ -1,6 +1,12 @@
 package gotest
 
-import "github.com/kindrid/gotest/should"
+import (
+	"github.com/kindrid/gotest/debug"
+	"github.com/kindrid/gotest/should"
+)
+
+// StackDepth sets the maximum stack depth reported with errors. 0 disables.
+var StackDepth = 5
 
 // T describes the interface provided by Go's std.testing.T. If only they had
 // made that an interface!
@@ -14,9 +20,7 @@ type T interface {
 func Assert(t T, actual interface{}, assertion should.Assertion, expected ...interface{}) {
 	fail := assertion(actual, expected...)
 	if fail != "" {
-		// q.Q("Value L?", CallerSimple(3), fail)
-		// t.Error(CallerSimple())
-		t.Error(fail)
+		t.Errorf("%s\nStack=%s", fail, debug.FormattedCallStack(StackDepth))
 	}
 }
 
