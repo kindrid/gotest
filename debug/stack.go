@@ -1,8 +1,9 @@
-package should
+package debug
 
 import (
 	"fmt"
 	"runtime"
+	"strings"
 )
 
 // CallerInfo gives info about the current call stack.
@@ -17,9 +18,6 @@ func CallerInfo(depth int) (msg, fileName string, fileLine int) {
 // CallerSimple gives a single string with condensed information about the current call stack.
 func CallerSimple(depth int) string {
 	msg, _, _ := CallerInfo(depth)
-	if msg == "" {
-		return "Caller info unavailable."
-	}
 	return msg
 }
 
@@ -35,4 +33,9 @@ func CallStack(maxDepth int) (result []string) {
 		result = append(result, msg)
 	}
 	return
+}
+
+// FormattedCallStack returns the call stack printout as lines.
+func FormattedCallStack(maxDepth int) string {
+	return strings.Join(CallStack(maxDepth), "\n")
 }
