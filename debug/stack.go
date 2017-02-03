@@ -1,4 +1,4 @@
-package should
+package debug
 
 import (
 	"fmt"
