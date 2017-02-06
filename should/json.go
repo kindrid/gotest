@@ -19,6 +19,12 @@ func parseJSON(actual interface{}) (*gabs.Container, error) {
 			return nil, fmt.Errorf("Error parsing JSON: %s\nBody: %s", err, v)
 		}
 		return container, err
+	case *string:
+		container, err := gabs.ParseJSON([]byte(*v))
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing JSON: %s\nBody: %s", err, *v)
+		}
+		return container, err
 	case []byte:
 		return gabs.ParseJSON(v)
 	case *gabs.Container:
