@@ -55,6 +55,47 @@ func BeJSONAPIRecord(actual interface{}, expected ...interface{}) (fail string) 
 	return
 }
 
+// BeJSONAPIArray passes if actual seems to be a complete JSONAPI-format
+// response where response.data is a multi-object array.
+func BeJSONAPIArray(actual interface{}, expected ...interface{}) (fail string) {
+	usage := "BeJSONAPIArray expects a single string argument and passes if that argument parses as a JSONAPI multi-object array."
+	if actual == nil {
+		return usage
+	}
+	json, err := parseJSON(actual)
+	if err != nil {
+		return err.Error()
+	}
+	fail += HaveFields(json, "meta", reflect.Map, "data", reflect.Slice)
+	fail += HaveOnlyFields(json, "meta", reflect.Map, "data", reflect.Slice, "links", reflect.Map, "included", reflect.Slice)
+	fail += beValidMeta(json.Search("meta"))
+	fail += beValidRecordArray(json.Search("data"))
+	if links := json.Search("links"); links != nil {
+		fail += beValidLinks(links)
+	}
+	if included := json.Search("included"); included != nil {
+		fail += beValidIncluded(included)
+	}
+	return
+}
+
+// BeJSONAPI passes if actual seems to be a complete JSONAPI-format response
+// where response.data is a multi-object array or a single JSON object.
+func BeJSONAPI(actual interface{}, expected ...interface{}) (fail string) {
+	usage := "BeJSONAPIArray expects a single string argument and passes if that argument parses as a JSONAPI return value."
+	if actual == nil {
+		return usage
+	}
+	json, err := parseJSON(actual)
+	if err != nil {
+		return err.Error()
+	}
+	if HaveFields(json, "data", reflect.Slice) == "" {
+		return BeJSONAPIArray(actual, expected)
+	}
+	return BeJSONAPIRecord(actual, expected)
+}
+
 func beValidMeta(json *gabs.Container) (fail string) {
 	// Kindrid Specific:
 	// fail += HaveFields(json, "apiVersion", reflect.String, "formatVersion", reflect.String)
@@ -63,6 +104,19 @@ func beValidMeta(json *gabs.Container) (fail string) {
 
 func beValidRecord(json *gabs.Container) (fail string) {
 	fail += HaveFields(json, "id", reflect.String, "type", reflect.String)
+	return
+}
+
+func beValidRecordArray(json *gabs.Container) (fail string) {
+	children, err := json.Children()
+	if err != nil {
+		return err.Error()
+	}
+	for _, record := range children {
+		if fail = beValidRecord(record); fail != "" {
+			return
+		}
+	}
 	return
 }
 
