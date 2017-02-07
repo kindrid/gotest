@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/Jeffail/gabs"
+	"github.com/y0ssar1an/q"
 )
 
 /* About the JSON parser: https://github.com/tidwall/gjson and
@@ -34,10 +35,11 @@ func parseJSON(actual interface{}) (*gabs.Container, error) {
 	}
 }
 
-// HaveFields passes if the JSON container or string has fields with certain types of values:
+// HaveFields passes if the JSON container or string has fields with certain values or types of values:
 //
 //   HaveFields(json, "id", reflect.String)  // assert that there is a field `id` with a  string value.
-//   HaveFields(json, "count", reflect.Float64)  // assert that there is a field `count` with an numeric value.
+//   HaveFields(json, "count", reflect.Float64)  // assert that there is a field `count` with a numeric value.
+//   HaveFields(json, "count", 100)  // assert that there is a field `count` with a numeric value equal to 100.
 //   HaveFields(json, "default", reflect.Interface)  // assert that there is a field `default` with any type of value.
 //
 func HaveFields(actual interface{}, expected ...interface{}) (fail string) {
@@ -75,18 +77,22 @@ func AllowFields(actual interface{}, expected ...interface{}) (fail string) {
 // expected is [fieldPath string, fieldKind reflect.Kind, ...]  pairs
 func haveFields(json *gabs.Container, required bool, expected ...interface{}) (fail string) {
 	for i := 0; i < len(expected); i += 2 {
-		fieldPath := expected[i].(string)
-		expectedKind := expected[i+1].(reflect.Kind)
-
 		// check existence of key
+		fieldPath := expected[i].(string)
 		container := json.Path(fieldPath)
 		if container == nil || container.Data() == nil { // field not found
 			if required {
-				fail += fmt.Sprintf("Field '%s' is missing. ", fieldPath)
+				fail += fmt.Sprintf("Field '%s' is missing.\n%s", fieldPath, json)
 			}
 			continue
 		}
 
+		expectedInterface := expected[i+1]
+		expectedKind, ok := expectedInterface.(reflect.Kind)
+		if !ok { // We have a value, not a Kind
+			q.Q(container.Data(), expectedInterface)
+			return Equal(container.Data(), expectedInterface)
+		}
 		// check type of value
 		if expectedKind == reflect.Interface { // allow any type
 			continue
