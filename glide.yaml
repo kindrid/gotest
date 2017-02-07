@@ -1,0 +1,10 @@
+package: github.com/kindrid/gotest
+import:
+- package: github.com/DATA-DOG/godog
+  version: ^0.6.1
+- package: github.com/Jeffail/gabs
+  version: ^1.0.0
+- package: github.com/smartystreets/assertions
+  version: ^1.6.0
+- package: github.com/y0ssar1an/q
+  version: ^1.0.1

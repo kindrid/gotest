@@ -1,0 +1,24 @@
+language: go
+
+matrix:
+  - include:
+    - go: 1.6
+    - go: 1.7
+
+notifcations:
+  email: false
+
+before_install:
+  - go get -u honnef.co/go/staticcheck/cmd/staticcheck
+  - go get -u honnef.co/go/simple/cmd/gosimple
+  - go get -u github.com/golang/lint/golint
+
+script:
+  # $pkgs avoids testing anything in vendor/
+  - pkgs=$(go list ./... | grep -v /vendor/)
+  - test -z $(gofmt -s -l .)
+  - go test -v -race $pkgs
+  - go vet $pkgs
+  - staticcheck $pkgs
+  - gosimple $pkgs
+  - golint $pkgs
