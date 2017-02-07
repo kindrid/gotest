@@ -2,7 +2,7 @@ init:
 	go get -t -v ./...
 
 test:
-	go test ./ ./cuke ./should
+	go test ./ ./should
 
 test-watch:
 	modd

@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/Jeffail/gabs"
-	"github.com/y0ssar1an/q"
 )
 
 /* About the JSON parser: https://github.com/tidwall/gjson and
@@ -90,7 +89,6 @@ func haveFields(json *gabs.Container, required bool, expected ...interface{}) (f
 		expectedInterface := expected[i+1]
 		expectedKind, ok := expectedInterface.(reflect.Kind)
 		if !ok { // We have a value, not a Kind
-			q.Q(container.Data(), expectedInterface)
 			return Equal(container.Data(), expectedInterface)
 		}
 		// check type of value
