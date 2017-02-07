@@ -10,16 +10,16 @@ func MatchHTTPStatusCode(actual interface{}, expected ...interface{}) (fail stri
 	if msg := exactly(1, expected); msg != Ok {
 		return msg
 	}
-	eStatus, ok := expected[0].(int64)
+	eStatus, ok := expected[0].(int)
 	if !ok {
-		return fmt.Sprintf("Expected value should be an integer, not a %T.", expected[0])
+		return fmt.Sprintf("Expected value should be an int, not a %T.", expected[0])
 	}
 	aRsp, ok := actual.(*http.Response)
 	if !ok {
 		return "Actual value should be a *http.Response"
 	}
 	aStatus := aRsp.StatusCode
-	if aStatus == int(eStatus) {
+	if Equal(aStatus, eStatus) == "" {
 		return ""
 	}
 
