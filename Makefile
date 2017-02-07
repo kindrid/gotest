@@ -9,3 +9,5 @@ test-watch:
 
 build-ci: init
 	go build -v ./...
+
+ci-job1: test
