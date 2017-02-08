@@ -187,7 +187,7 @@ func HaveOnlyCamelcaseKeys(actual interface{}, ignored ...interface{}) (fail str
 	return checkCamelcaseKeys(json, ignoreMap)
 }
 
-var camelCaseRegexp = regexp.MustCompile(`^[a-zA-Z]+$`)
+var camelCaseRegexp = regexp.MustCompile(`^[a-z][a-zA-Z0-9]*$`)
 
 func checkCamelcaseKeys(j *gabs.Container, ignores map[string]bool) (fail string) {
 	// if j is an Object with keys, check each of keys and children
