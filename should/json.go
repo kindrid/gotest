@@ -3,8 +3,10 @@ package should
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 
 	"github.com/Jeffail/gabs"
+	"github.com/y0ssar1an/q"
 )
 
 /* About the JSON parser: https://github.com/tidwall/gjson and
@@ -158,5 +160,72 @@ func BeJSON(actual interface{}, expected ...interface{}) (fail string) {
 	if err != nil {
 		return err.Error()
 	}
+	return ""
+}
+
+// HaveOnlyCamelcaseKeys passes if all the attributes within a JSON container or
+// string contain only upper and lower case ASCII letters.
+//
+func HaveOnlyCamelcaseKeys(actual interface{}, ignored ...interface{}) (fail string) {
+	usage := "HaveOnlyCamelcaseKeys expects parseable JSON in actual. It's keys will recursively checked to make sure they have no snake_case keys. Any right-side arguments should be snake_case key names to be ignored."
+	if actual == nil {
+		return usage
+	}
+	json, err := parseJSON(actual)
+	if err != nil {
+		return err.Error()
+	}
+
+	ignoreMap := make(map[string]bool)
+	for _, igI := range ignored {
+		igS, ok := igI.(string)
+		if !ok {
+			return fmt.Sprintf("%s. One of the ignored values (%#v) is a %T, not a string.\n%#v", usage, igI, igI, ignored)
+		}
+		ignoreMap[igS] = true
+	}
+
+	q.Q(ignoreMap)
+	return checkCamelcaseKeys(json, ignoreMap)
+}
+
+var camelCaseRegexp = regexp.MustCompile(`^[a-zA-Z]+$`)
+
+func checkCamelcaseKeys(j *gabs.Container, ignores map[string]bool) (fail string) {
+	// if j is an Object with keys, check each of keys and children
+	children, notObjectErr := j.ChildrenMap()
+	if notObjectErr == nil {
+		for k, v := range children {
+			if ignores[k] {
+				return
+			}
+			if camelCaseRegexp.MatchString(k) {
+				fail = checkCamelcaseKeys(v, ignores)
+			} else {
+				fail = fmt.Sprintf("Expecting only camelCase keys: found '%s'.\nWithin: %s ",
+					k, j)
+			}
+			if fail != "" {
+				return // fail fast to limit recursion
+			}
+		}
+		return
+	}
+
+	// If j is an array, check each of it's elements
+	// j.Children() will succeed for objects but lose the keys, so order is
+	// it's important to check this AFTER the j.ChildMap() check
+	elements, notArrayErr := j.Children()
+	if notArrayErr == nil {
+		for _, element := range elements {
+			fail = checkCamelcaseKeys(element, ignores)
+			if len(fail) > 0 {
+				return // fail fast to limit recursion
+			}
+		}
+		return
+	}
+
+	// otherwise this is an atomic object. No check necessary.
 	return ""
 }

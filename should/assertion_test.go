@@ -14,7 +14,7 @@ func Passes(t *testing.T, topic string, a Assertion, actual interface{}, expecte
 	if fail == "" {
 		return
 	}
-	t.Errorf("%s Expected %v to pass but got '%s'", topic, a, fail)
+	t.Errorf("%s Expected %#v to pass but got '%s'", topic, a, fail)
 	t.Errorf(strings.Join(debug.CallStack(5), ", "))
 	// if fail != "" {
 	// 	t.Errorf("Expected %v to pass. Instead got '%s'.", a, fail)
@@ -26,7 +26,7 @@ func Passes(t *testing.T, topic string, a Assertion, actual interface{}, expecte
 func Fails(t *testing.T, topic string, a Assertion, actual interface{}, expected ...interface{}) {
 	fail := a(actual, expected...)
 	if fail == "" {
-		t.Errorf("Expected %v to fail. Instead it passed.", a)
+		t.Errorf("Expected %#v (%s) to fail. Instead it passed.", a, topic)
 	}
 }
 

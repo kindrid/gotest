@@ -5,15 +5,18 @@ import (
 	"testing"
 )
 
-const jsonSimpleObject = `{"x": 1}`
-const jsonCompoundObject = `{"a": 1, "b": [1,2,3], "c": true, "d": "yes", "nested": ` + jsonSimpleObject + `}`
-const jsonArray = "[" + jsonCompoundObject + "," + jsonCompoundObject + "," + jsonCompoundObject + "]"
+const jsonSimpleObject = `{"x": 1, "camelCase": true}`
+const jsonObject = `{"a": 1, "b": [1,2,3], "c": true, "d": "yes", "nested": ` + jsonSimpleObject + `}`
+const jsonArray = "[" + jsonObject + "," + jsonObject + "," + jsonObject + "]"
+const snakeyObject = `{"a": 1, "b": [1,2,3], "snake_case": true, "d": "yes", "nested": ` + jsonSimpleObject + `}`
+const snakeyArray = "[" + jsonObject + "," + snakeyObject + "," + jsonObject + "]"
 
 //TestJSON exercise the JSON tests
 func TestJSON(t *testing.T) {
 	t.Parallel()
 	t.Run("should.BeJSON", testBeJSON)
 	t.Run("should.HaveFields", testHaveFields)
+	t.Run("should.HaveOnlyCamelcaseKeys", testCamelcaseKeys)
 }
 
 func testHaveFields(t *testing.T) {
@@ -22,12 +25,12 @@ func testHaveFields(t *testing.T) {
 	var wrongFields = []interface{}{"a", reflect.String, "c", reflect.Float64, "d",
 		reflect.Bool, "g", reflect.Interface}
 	Passes(t, "Should have fields pass",
-		HaveFields, jsonCompoundObject, simpleFields...)
+		HaveFields, jsonObject, simpleFields...)
 	Fails(t, "Should have fields fail",
-		HaveFields, jsonCompoundObject, wrongFields...)
-	Passes(t, "Only have fields pass", HaveOnlyFields, jsonCompoundObject, simpleFields...)
-	Fails(t, "Only have fields pass", HaveOnlyFields, jsonCompoundObject, "a", reflect.String)
-	Fails(t, "Only have fields pass", HaveOnlyFields, jsonCompoundObject, "z", reflect.String)
+		HaveFields, jsonObject, wrongFields...)
+	Passes(t, "Only have fields pass", HaveOnlyFields, jsonObject, simpleFields...)
+	Fails(t, "Only have fields pass", HaveOnlyFields, jsonObject, "a", reflect.String)
+	Fails(t, "Only have fields pass", HaveOnlyFields, jsonObject, "z", reflect.String)
 
 	// Test documentation
 	Passes(t, "Self documents if passed nil", StartWith, HaveFields(nil), "HaveFields expects")
@@ -36,7 +39,7 @@ func testHaveFields(t *testing.T) {
 func testBeJSON(t *testing.T) {
 	// Test the happy paths.
 	Passes(t, "A simple object should parse", BeJSON, jsonSimpleObject)
-	Passes(t, "A compound object should parse", BeJSON, jsonCompoundObject)
+	Passes(t, "A compound object should parse", BeJSON, jsonObject)
 	Passes(t, "An array should parse", BeJSON, jsonArray)
 	Passes(t, "An []byte of the same array should parse", BeJSON, []byte(jsonArray))
 
@@ -50,4 +53,14 @@ func testBeJSON(t *testing.T) {
 	parsedJSONContainer, err := parseJSON(jsonArray)
 	Passes(t, "...checking parse", BeNil, err)
 	Passes(t, "A pre-parsed object should pass through.", BeJSON, parsedJSONContainer)
+}
+
+func testCamelcaseKeys(t *testing.T) {
+	Passes(t, "A compound object with camelCase keys should pass", HaveOnlyCamelcaseKeys, jsonObject)
+	Passes(t, "An array holding objects with camelCase keys should pass", HaveOnlyCamelcaseKeys, jsonArray)
+	Fails(t, "A compound object with snake_case keys should fail", HaveOnlyCamelcaseKeys, snakeyObject)
+	Fails(t, "An array holding objects with snake_case keys should fail", HaveOnlyCamelcaseKeys, snakeyArray)
+	Passes(t, "A compound object ignoring it's snake_case keys should pass", HaveOnlyCamelcaseKeys, snakeyObject, "snake_case")
+	Passes(t, "An array holding objects ignoring it's snake_case keys should pass", HaveOnlyCamelcaseKeys, snakeyArray, "snake_case")
+	Fails(t, "Asking the camelcaser to ignore a non-string fails.", HaveOnlyCamelcaseKeys, jsonObject, make(map[int]int))
 }
