@@ -6,7 +6,6 @@ import (
 	"regexp"
 
 	"github.com/Jeffail/gabs"
-	"github.com/y0ssar1an/q"
 )
 
 /* About the JSON parser: https://github.com/tidwall/gjson and
@@ -185,7 +184,6 @@ func HaveOnlyCamelcaseKeys(actual interface{}, ignored ...interface{}) (fail str
 		ignoreMap[igS] = true
 	}
 
-	q.Q(ignoreMap)
 	return checkCamelcaseKeys(json, ignoreMap)
 }
 
