@@ -41,5 +41,10 @@ Thanks to https://github.com/smartystreets/assertions for their inspiration and
 excellent assertion library. Be sure to look at the Variables section (below)
 for those assertions aliased into this package.
 
+Future
+
+- [ ] Do we want to pass in options via flags, magic args ("option:save-golden"),
+or environment variables (SHOULD_SAVE_GOLDEN=1)?
+
 */
 package should
