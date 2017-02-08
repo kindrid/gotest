@@ -70,7 +70,7 @@ const singleRecordResponse = `{
 	, "included": [
 		{ "type": "people"
 		, "id": "9"
-		, "attributes": { "first-name": "Dan" , "last-name": "Gebhardt" , "twitter": "dgeb" }
+		, "attributes": { "firstName": "Dan" , "lastName": "Gebhardt" , "twitter": "dgeb" }
 		, "links": { "self": "http://example.com/people/9" }
     }
 	  , { "type": "comments"
@@ -122,8 +122,8 @@ const arrayResponse = `{"meta": {}
     "type": "people",
     "id": "9",
     "attributes": {
-      "first-name": "Dan",
-      "last-name": "Gebhardt",
+      "firstName": "Dan",
+      "lastName": "Gebhardt",
       "twitter": "dgeb"
     },
     "links": {

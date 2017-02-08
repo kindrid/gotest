@@ -52,6 +52,7 @@ func BeJSONAPIRecord(actual interface{}, expected ...interface{}) (fail string) 
 	if included := json.Search("included"); included != nil {
 		fail += beValidIncluded(included)
 	}
+	fail += HaveOnlyCamelcaseKeys(json)
 	return
 }
 
