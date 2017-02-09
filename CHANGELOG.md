@@ -1,4 +1,4 @@
-# Change Log
+# GoTest Change Log
 
 ## Conventions
 http://keepachangelog.com/en/0.3.0/
@@ -17,6 +17,9 @@ Each version should:
 ### Changed
 - Updated dependencies with `glide`
 - Added `HaveOnlyCamelcaseKeys` to 'BeJSONAPIRecord' (Limitation: BeJSONAPIRecord doesn't have the `ignore` option yet to explicitly allow some snake_case fields)
+
+### Fixed
+- camelCase detection regexp now allows numbers but requires initial lowercase letter
 
 ## [0.9.1] 2017-02-08
 ### Added
