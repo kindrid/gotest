@@ -1,10 +1,16 @@
 hash: 5aaed01b07c2e0c27e671bfda455221368c018fe261fd4dea84176ea199a3bd5
-updated: 2017-02-07T14:44:43.616510268-05:00
+updated: 2017-02-08T14:32:48.991856686-05:00
 imports:
 - name: github.com/DATA-DOG/godog
   version: 2e189ad0f9dee046e42bb5f04a7ec5e91ec0700e
+  subpackages:
+  - colors
+  - gherkin
 - name: github.com/Jeffail/gabs
   version: 2a3aa15961d5fee6047b8151b67ac2f08ba2c48c
 - name: github.com/smartystreets/assertions
   version: e9a2f6771d97c709b2f7609fdf89ebde8b64c926
+  subpackages:
+  - internal/go-render/render
+  - internal/oglematchers
 testImports: []

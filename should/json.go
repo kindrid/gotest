@@ -6,7 +6,6 @@ import (
 	"regexp"
 
 	"github.com/Jeffail/gabs"
-	"github.com/y0ssar1an/q"
 )
 
 /* About the JSON parser: https://github.com/tidwall/gjson and
@@ -185,11 +184,10 @@ func HaveOnlyCamelcaseKeys(actual interface{}, ignored ...interface{}) (fail str
 		ignoreMap[igS] = true
 	}
 
-	q.Q(ignoreMap)
 	return checkCamelcaseKeys(json, ignoreMap)
 }
 
-var camelCaseRegexp = regexp.MustCompile(`^[a-zA-Z]+$`)
+var camelCaseRegexp = regexp.MustCompile(`^[a-z][a-zA-Z0-9]*$`)
 
 func checkCamelcaseKeys(j *gabs.Container, ignores map[string]bool) (fail string) {
 	// if j is an Object with keys, check each of keys and children

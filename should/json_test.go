@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-const jsonSimpleObject = `{"x": 1, "camelCase": true}`
+const jsonSimpleObject = `{"x": 1, "camelCase": true, "type1Condition": true}`
 const jsonObject = `{"a": 1, "b": [1,2,3], "c": true, "d": "yes", "nested": ` + jsonSimpleObject + `}`
 const jsonArray = "[" + jsonObject + "," + jsonObject + "," + jsonObject + "]"
 const snakeyObject = `{"a": 1, "b": [1,2,3], "snake_case": true, "d": "yes", "nested": ` + jsonSimpleObject + `}`
