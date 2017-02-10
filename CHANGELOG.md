@@ -13,7 +13,7 @@ Each version should:
 - **Fixed**: for any bug fixes.
 - **Security**: to invite users to upgrade in case of vulnerabilities.
 
-## [UNRELEASED]
+## [0.9.1] 2017-02-09
 ### Changed
 - Updated dependencies with `glide`
 - Added `HaveOnlyCamelcaseKeys` to 'BeJSONAPIRecord' (Limitation: BeJSONAPIRecord doesn't have the `ignore` option yet to explicitly allow some snake_case fields)
