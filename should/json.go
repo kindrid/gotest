@@ -12,6 +12,18 @@ import (
 /* https://github.com/tidwall/gjson both fit most of our needs. Gjson is faster
 /* most of the time, but uses unsafe and doesn't give distinct parse errors. */
 
+// ParseJSON accepts JSON in various formats (including its output format) and returns traversable output.
+func ParseJSON(actual interface{}) (StructureExplorer, error) {
+	var result *GabsExplorer
+	// gabs := &gabs.Container{}
+	gabs, err := parseJSON(actual)
+	if err != nil {
+		return nil, err
+	}
+	result = (*GabsExplorer)(gabs)
+	return result, nil
+}
+
 func parseJSON(actual interface{}) (*gabs.Container, error) {
 	switch v := actual.(type) {
 	case string:
