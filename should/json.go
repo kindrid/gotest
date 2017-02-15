@@ -42,6 +42,8 @@ func parseJSON(actual interface{}) (*gabs.Container, error) {
 		return gabs.ParseJSON(v)
 	case *gabs.Container:
 		return v, nil
+	case *GabsExplorer: // until we convert the other tests over to use StructureExplorers
+		return (*gabs.Container)(v), nil
 	default:
 		return nil, fmt.Errorf("Expecting a JSON string or a structure representing one, not a %T.", actual)
 	}
