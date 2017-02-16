@@ -13,6 +13,8 @@ Each version should:
 - **Fixed**: for any bug fixes.
 - **Security**: to invite users to upgrade in case of vulnerabilities.
 
+## [0.9.4] UNRELEASED
+
 ## [0.9.3] 2017-02-16
 ### Added
 - Interface `should.StructureExplorer`, a minimal JSON destructuring interface to decouple libraries using `gotest` from `github.com/Jeffail/gabs`.
