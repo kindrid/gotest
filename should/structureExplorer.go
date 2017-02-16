@@ -2,7 +2,11 @@ package should
 
 // Exports JSON (and potentially other data structures or mocks) as an interface
 
-import "github.com/Jeffail/gabs"
+import (
+	"fmt"
+
+	"github.com/Jeffail/gabs"
+)
 
 // StructureExplorer considers generalizing *gabs.Container with the methods needed to test a complex data structure's content and schema.
 type StructureExplorer interface {
@@ -69,6 +73,8 @@ func (ge *GabsExplorer) Keys() (result []string) {
 	g := (*gabs.Container)(ge)
 	m, err := g.ChildrenMap()
 	if err != nil {
+		result = append(result, fmt.Sprintf("Error getting structure map: %s\n%#v", err, g))
+	} else {
 		for k := range m {
 			result = append(result, k)
 		}

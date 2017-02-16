@@ -14,6 +14,7 @@ type T interface {
 	Error(args ...interface{})
 	Errorf(format string, args ...interface{})
 	Fail()
+	Logf(format string, args ...interface{})
 }
 
 // Assert wraps any standard Assertion for use with Go's std.testing library.
@@ -31,4 +32,9 @@ func Deny(t T, actual interface{}, assertion should.Assertion, expected ...inter
 	if fail == "" {
 		t.Error("Expected a failure")
 	}
+}
+
+// Later describes pending tests.
+func Later(t T, desc string, ignored ...interface{}) {
+	t.Logf("LATER: %s", desc)
 }

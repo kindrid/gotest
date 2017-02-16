@@ -13,10 +13,11 @@ Each version should:
 - **Fixed**: for any bug fixes.
 - **Security**: to invite users to upgrade in case of vulnerabilities.
 
-## [0.9.2] UNRELEASED
+## [0.9.2] 2017-02-16
 ### Added
-- Created a very limited JSON destructuring interface, `should.StructureExplorer` to decouple libraries using gotest from `github.com/Jeffail/gabs`.
-- Exported ParseJSON that returns a `should.StructureExplorer` so outside libraries can write their own JSON assertions.
+- Interface `should.StructureExplorer`, a minimal JSON destructuring interface to decouple libraries using `gotest` from `github.com/Jeffail/gabs`.
+- Method `should.ParseJSON()` that returns a `should.StructureExplorer` so outside libraries can write their own JSON assertions.
+- method `gotest.Later()` to sketch out unimplemented tests
 
 ## [0.9.1] 2017-02-09
 ### Changed
