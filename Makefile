@@ -13,7 +13,7 @@ build-ci: init
 # Make sure there's no debug code etc.
 ci-code-quality:
 	@echo "Checking for debugging figments"
-	@! grep --exclude Makefile --exclude-dir vendor -nIR 'y0ssarian/q' *
+	@! grep --exclude Makefile --exclude-dir vendor -nIR 'y0ssar1an/q' *
 	@! grep --exclude Makefile --exclude-dir vendor -nIR 'DEBUG' *
 
 # CI First Parallel Job

@@ -25,7 +25,6 @@ func BeJSONAPIResourceIdentifier(actual interface{}, expected ...interface{}) (f
 
 func beJSONAPIResourceIdentifier(json *gabs.Container) (fail string) {
 	var fields = []interface{}{"id", reflect.String, "type", reflect.String}
-	// fmt.Print("DEBUG", json, fields)
 	fail += HaveFields(json, fields...)
 	fail += HaveOnlyFields(json, fields...)
 	return
