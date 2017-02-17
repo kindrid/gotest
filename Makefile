@@ -10,4 +10,11 @@ test-watch:
 build-ci: init
 	go build -v ./...
 
-ci-job1: test
+# Make sure there's no debug code etc.
+ci-code-quality:
+	@echo "Checking for debugging figments"
+	@! grep --exclude Makefile --exclude-dir vendor -nIR 'y0ssarian/q' *
+	@! grep --exclude Makefile --exclude-dir vendor -nIR 'DEBUG' *
+
+# CI First Parallel Job
+ci-job1: ci-code-quality test

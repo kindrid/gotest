@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/kindrid/gotest/debug"
+	"github.com/y0ssar1an/q"
 )
 
 // HELPERS for self testing
@@ -14,6 +15,7 @@ func Passes(t *testing.T, topic string, a Assertion, actual interface{}, expecte
 	if fail == "" {
 		return
 	}
+	q.Q("test debug code check")
 	t.Errorf("%s Expected %#v to pass but got '%s'", topic, a, fail)
 	t.Errorf(strings.Join(debug.CallStack(5), ", "))
 	// if fail != "" {
