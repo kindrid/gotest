@@ -8,7 +8,8 @@ import (
 	"github.com/Jeffail/gabs"
 )
 
-// StructureExplorer considers generalizing *gabs.Container with the methods needed to test a complex data structure's content and schema.
+// StructureExplorer considers generalizing *gabs.Container with the methods
+// needed to test a complex data structure's content and schema.
 type StructureExplorer interface {
 	// Data gets the datum stored within a StructureExplorer
 	Data() interface{}
@@ -22,11 +23,20 @@ type StructureExplorer interface {
 
 	// IsObject returns true if the Structure explorer holds (possibly) unordered named  values
 	IsObject() bool
-	// Keys returns the names of the values within a structure
+	// Has returns true if the key names an attribute in a structure
 	Keys() []string
-	// GetPath returns the the element from an object structure by name
+	// PathExists returns true if the structure has an element at path with a non-null value
+	PathExists(path string) bool
+	// GetPath returns the the element from an object structure by name if path exists and sets ok to true
 	GetPath(path string) StructureExplorer
+	// GetPathCheck returns (element, true) if path exists it's element has a
+	// non-null value. Otherwise it returns (undefined, false.)
+	GetPathCheck(path string) (result StructureExplorer, ok bool)
 }
+
+// func StructureHasKey(key string) bool{
+// 	for _, k
+// }
 
 // GabsExplorer wraps a StructureExplorer over a gabs.Container
 type GabsExplorer gabs.Container
@@ -82,7 +92,24 @@ func (ge *GabsExplorer) Keys() (result []string) {
 	return
 }
 
-// GetPath returns the the element from an object structure by name
+// GetPathCheck returns the the element from an object structure by name
+func (ge *GabsExplorer) GetPathCheck(path string) (se StructureExplorer, ok bool) {
+	se = ge.GetPath(path)
+	if se.Data() != nil {
+		ok = true
+	}
+	return
+}
+
+// PathExists returns true if the path exists and its element is non-null
+// element isn't found, return's .Data() == nil
+func (ge *GabsExplorer) PathExists(path string) bool {
+	se := ge.GetPath(path)
+	return se.Data != nil
+}
+
+// GetPath returns the the element from an object structure by name. If the
+// element isn't found, return's .Data() == nil
 func (ge *GabsExplorer) GetPath(path string) StructureExplorer {
 	g := (*gabs.Container)(ge)
 	result := g.Path(path)
