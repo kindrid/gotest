@@ -1,7 +1,8 @@
 VERSION = 0.9.5
 COMMIT = ${shell git log --pretty='format:%h' -n 1}
 BRANCH = ${shell git rev-parse --abbrev-ref HEAD}
-
+# THIS WON'T WORK WITH A LIBRARY BUILD!
+BUILD_VARS = -X ${INJECT_VARS_SITE}.Version=${VERSION} -X ${INJECT_VARS_SITE}.Commit=${COMMIT}
 
 init:
 	go get -t -v ./...
@@ -24,11 +25,11 @@ code-quality:
 	@! grep --exclude Makefile --exclude-dir vendor -nIR 'DEBUG' *
 
 # package location for compiled-in values
-INJECT_VARS_SITE = github.com/kindrid/gotest/gotest
+INJECT_VARS_SITE = gotest
 
-# create executables for this plaform
+# create libs
 build: init
-	go build -v -ldflags "-X ${INJECT_VARS_SITE}.Version=${VERSION} -X ${INJECT_VARS_SITE}.Commit=${COMMIT}"  ./...
+	go build -v -ldflags "${BUILD_VARS}"  ./...
 
 # create any distribution files
 dist: build
