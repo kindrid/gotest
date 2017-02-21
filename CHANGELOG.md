@@ -13,6 +13,8 @@ Each version should:
 - **Fixed**: for any bug fixes.
 - **Security**: to invite users to upgrade in case of vulnerabilities.
 
+## [0.9.5] unreleased
+
 ## [0.9.4] 2017-02-21
 ### Added
 - StructureExplorer.GetPathCheck() is like GetPath() but returns a second value, ok bool, to verify whether the value was found.

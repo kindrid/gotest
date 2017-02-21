@@ -1,4 +1,4 @@
-VERSION = 0.9.4
+VERSION = 0.9.5
 COMMIT = ${shell git log --pretty='format:%h' -n 1}
 BRANCH = ${shell git rev-parse --abbrev-ref HEAD}
 
