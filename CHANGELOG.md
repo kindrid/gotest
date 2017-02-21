@@ -14,6 +14,8 @@ Each version should:
 - **Security**: to invite users to upgrade in case of vulnerabilities.
 
 ## [0.9.5] unreleased
+### Changed
+- updated godog version
 
 ## [0.9.4] 2017-02-21
 ### Added
