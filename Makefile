@@ -1,5 +1,7 @@
 VERSION = 0.9.4
-COMMITSHA = ${shell git log --pretty='format:%h' -n 1}
+COMMIT = ${shell git log --pretty='format:%h' -n 1}
+BRANCH = ${shell git rev-parse --abbrev-ref HEAD}
+
 
 init:
 	go get -t -v ./...
@@ -26,13 +28,13 @@ INJECT_VARS_SITE = github.com/kindrid/gotest/gotest
 
 # create executables for this plaform
 build: init
-	go build -v -ldflags "-X ${INJECT_VARS_SITE}.Version=${VERSION} -X ${INJECT_VARS_SITE}.Commit=${COMMITSHA}"  ./...
+	go build -v -ldflags "-X ${INJECT_VARS_SITE}.Version=${VERSION} -X ${INJECT_VARS_SITE}.Commit=${COMMIT}"  ./...
 
 # create any distribution files
 dist: build
 
 release:
-	github-release kindrid/gotest ${VERSION} "$$(git rev-parse --abbrev-ref HEAD)" copyTheChangeLogManually
+	github-release kindrid/gotest ${VERSION} ${BRANCH} copyTheChangeLogManually
 
 # Convention for our vendored builds on Semaphore
 ci-build: build
