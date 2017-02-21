@@ -34,7 +34,7 @@ build: init
 dist: build
 
 release:
-	github-release kindrid/gotest ${VERSION} ${BRANCH} copyTheChangeLogManually
+	github-release kindrid/gotest ${VERSION} ${BRANCH} copyTheChangeLogManually CHANGELOG.md
 
 # Convention for our vendored builds on Semaphore
 ci-build: build
