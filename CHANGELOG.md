@@ -13,6 +13,14 @@ Each version should:
 - **Fixed**: for any bug fixes.
 - **Security**: to invite users to upgrade in case of vulnerabilities.
 
+## [0.9.4] 2017-02-21
+### Added
+- StructureExplorer.GetPathCheck() is like GetPath() but returns a second value, ok bool, to verify whether the value was found.
+- StructureExplorer.PathExists() returns true if a path points to a structure element with a non-nil value
+- GetVersion() and GetCommit() give info about the code version.
+### Changed
+- Migrating some json checks to use the StructureExplorer interface instead of *gabs.Container. (Should probably make StructureExplorer its own subpackage.)
+
 ## [0.9.3] 2017-02-16
 ### Added
 - Interface `should.StructureExplorer`, a minimal JSON destructuring interface to decouple libraries using `gotest` from `github.com/Jeffail/gabs`.

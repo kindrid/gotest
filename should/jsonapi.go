@@ -25,7 +25,6 @@ func BeJSONAPIResourceIdentifier(actual interface{}, expected ...interface{}) (f
 
 func beJSONAPIResourceIdentifier(json *gabs.Container) (fail string) {
 	var fields = []interface{}{"id", reflect.String, "type", reflect.String}
-	// fmt.Print("DEBUG", json, fields)
 	fail += HaveFields(json, fields...)
 	fail += HaveOnlyFields(json, fields...)
 	return
@@ -42,6 +41,14 @@ func BeJSONAPIRecord(actual interface{}, expected ...interface{}) (fail string) 
 	if err != nil {
 		return err.Error()
 	}
+
+	// Turn this on later
+	// se := (*GabsExplorer)(json)
+	// prevent a confusing cascade of messages if we get a jsonapi error
+	// fail += looksLikeError(se)
+	// if fail != "" {
+	// 	return
+	// }
 	fail += HaveFields(json, "meta", reflect.Map, "data", reflect.Map)
 	fail += HaveOnlyFields(json, "meta", reflect.Map, "data", reflect.Map, "links", reflect.Map, "included", reflect.Slice)
 	fail += beValidMeta(json.Search("meta"))
@@ -56,6 +63,16 @@ func BeJSONAPIRecord(actual interface{}, expected ...interface{}) (fail string) 
 	return
 }
 
+func looksLikeError(json StructureExplorer) (fail string) {
+	if json.PathExists("errors") {
+		fail = "You expected a jsonapi return, but you got what looks like a jsonapi error."
+	}
+	if json.PathExists("error") {
+		fail += " You got what looks like a malformed jsonapi error. (It should only have .errors, an array, instead of .error, a singleton.)"
+	}
+	return
+}
+
 // BeJSONAPIArray passes if actual seems to be a complete JSONAPI-format
 // response where response.data is a multi-object array.
 func BeJSONAPIArray(actual interface{}, expected ...interface{}) (fail string) {
@@ -67,6 +84,15 @@ func BeJSONAPIArray(actual interface{}, expected ...interface{}) (fail string) {
 	if err != nil {
 		return err.Error()
 	}
+
+	// Turn this on later
+	// se := (*GabsExplorer)(json) // using the StructureExplorer interface
+	// // prevent a confusing cascade of messages if we get a jsonapi error
+	// fail += looksLikeError(se)
+	// if fail != "" {
+	// 	return
+	// }
+
 	fail += HaveFields(json, "meta", reflect.Map, "data", reflect.Slice)
 	fail += HaveOnlyFields(json, "meta", reflect.Map, "data", reflect.Slice, "links", reflect.Map, "included", reflect.Slice)
 	fail += beValidMeta(json.Search("meta"))
