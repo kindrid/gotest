@@ -16,6 +16,7 @@ Each version should:
 ## [0.9.5] unreleased
 ### Changed
 - updated godog version
+- should.MatchHTTPStatusCode is less verbose
 
 ## [0.9.4] 2017-02-21
 ### Added

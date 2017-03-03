@@ -5,6 +5,12 @@ import (
 	"net/http"
 )
 
+// DescribeResponse give tests a way to, if failing, dump the request and
+// response without having every test method do it.
+func DescribeResponse(rsp *http.Response) (desc string) {
+	return "WIP--see goblue.blueprint.Harness.formatResponse"
+}
+
 // MatchHTTPStatusCode asserts that the documented and actual HTTP status codes match
 func MatchHTTPStatusCode(actual interface{}, expected ...interface{}) (fail string) {
 	if msg := exactly(1, expected); msg != Ok {
@@ -24,9 +30,8 @@ func MatchHTTPStatusCode(actual interface{}, expected ...interface{}) (fail stri
 	}
 
 	return fmt.Sprintf(
-		"HTTP Status Expected: %d %s. Got: %d %s. \nRequest: %#v.\nResponse: %#v.",
+		"HTTP DEBUG Status Expected: %d %s. Got: %d %s.",
 		eStatus, http.StatusText(int(eStatus)),
 		aStatus, http.StatusText(aStatus),
-		aRsp.Request, aRsp,
 	)
 }
