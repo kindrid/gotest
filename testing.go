@@ -72,16 +72,17 @@ func Inspectv(minLevel int, label string, inspected ...interface{}) (result stri
 func Assert(t T, actual interface{}, assertion should.Assertion, expected ...interface{}) {
 	fail := assertion(actual, expected...)
 	if fail != "" {
+		terseMsg, extraMsg, detailsMsg, metaMsg := should.SplitMsg(fail)
 		msg := ""
 		if StackDepth > 0 {
 			msg += fmt.Sprintf("\nTest Failure Stack Trace: %s\n\n", debug.FormattedCallStack(StackDepth))
 		}
-		msg += Sprintv(Terse, "Test failure: %s.\nTest path: %s\n", "should.TerseMessage", "testPath")
-		msg += Sprintv(Extra, "%s\n", "should.ExtraMessage")
+		msg += Sprintv(Terse, "Test failure: %s.\nTest path: %s\n", terseMsg, "testPath")
+		msg += Sprintv(Extra, "%s\n", extraMsg)
 		msg += Inspectv(Actuals, "Actual", actual)
 		msg += Inspectv(Expecteds, "Expected", expected)
-		msg += Sprintv(Flood, "Failure Details: %s\n", "should.FailureDetails")
-		msg += Sprintv(Insane, "Meta Details: %s\n", "should.MetaDetails")
+		msg += Sprintv(Flood, "Failure Details: %s\n", detailsMsg)
+		msg += Sprintv(Insane, "Meta Details: %s\n", metaMsg)
 		t.Error(msg)
 	}
 }
