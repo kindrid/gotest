@@ -1,4 +1,4 @@
-VERSION = 0.9.5
+VERSION = $(shell sed -n 's/^ *Version *= *"\(.*\)"/\1/p' < version.go)
 COMMIT = ${shell git log --pretty='format:%h' -n 1}
 BRANCH = ${shell git rev-parse --abbrev-ref HEAD}
 # THIS WON'T WORK WITH A LIBRARY BUILD!
