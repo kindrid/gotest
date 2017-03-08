@@ -17,6 +17,7 @@ Each version should:
 ### Changed
 - updated godog version
 - should.MatchHTTPStatusCode is less verbose
+- slight improvements to documentation.
 
 ## [0.9.4] 2017-02-21
 ### Added
