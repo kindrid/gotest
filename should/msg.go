@@ -1,6 +1,9 @@
 package should
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // tools for working with failure messages
 
@@ -14,25 +17,56 @@ const (
 )
 
 // SplitMsg divides a failure message into parts that may be muted depending on verbosity levels
-func SplitMsg(fail string) (short, long, details, meta string) {
-	findOrSetToLength := func(s string) int {
-		r := strings.Index(fail, s)
-		if r < 0 {
-			r = len(fail)
+func SplitMsg(msg string) (short, long, details, meta string) {
+	chop := func(s, sep string) (found, rest string) {
+		pos := strings.Index(s, sep)
+		if pos < 0 {
+			rest = s
+		} else {
+			found = s[:pos]
+			rest = s[pos+len(sep):]
 		}
-		return r
+		return
 	}
-	shortZ := findOrSetToLength(ShortSeparator)
-	// if shortZ == -1 { // this fail string isn't playing by our rules
-	// 	shortZ = failZ
-	// }
-	// longZ = strings.Index(fail, LongSeparator)
-	// detailsZ = strings.Index(fail, DetailsSeparator)
-	//
+	short, long = chop(msg, ShortSeparator)
+	// fmt.Printf("msg %s\n short %s\n", msg, short)
+	long, details = chop(long, LongSeparator)
+	// fmt.Printf("long %s\n details %s\n", long, details)
+	details, meta = chop(details, DetailsSeparator)
+	// fmt.Printf("details %s\n meta %s\n", details, meta)
+	if short == "" {
+		return msg, "", "", ""
+	} else if long == "" && details == "" {
+		return short, meta, "", ""
+	} else if details == "" {
+		return short, long, meta, ""
+	}
+	return
+}
 
-	short = fail[:shortZ]
-	// long = fail[longZ:]
-	// details = fail[detailsZ:]
+func oldSplitMsg(msg string) (short, long, details, meta string) {
+	msgZ := len(msg)
+	findAndClean := func(start int, find string) (string, int) {
+		fmt.Printf("Searching from %d for %s.\n", start, find)
+		if start >= msgZ {
+			return "", msgZ
+		}
+		pos := strings.Index(msg[start:], find)
+		if pos < 0 { // not found
+			return "", start
+		}
+		return msg[start:pos], pos + len(find)
+	}
+	// shortZ := findOrSetToLength(ShortSeparator)
+	// longZ := findOrSetToLength(LongSeparator)
+	pos := 0
+	short, pos = findAndClean(pos, ShortSeparator)
+	if short == "" { // special case: not formatted by our rules or only a short message
+		short = msg
+		return
+	}
+	long, _ = findAndClean(pos, LongSeparator)
+	// details = msg[detailsZ:]
 	// meta = fail[metaZ:]
 	return
 }
