@@ -22,11 +22,11 @@ var Verbosity int
 // be controlled by the StackDepth variable.
 const (
 	Silent    = iota - 1 // (hopefully) no output except panics
-	Terse                // Shows the first line of the failure string (up to \n) and info to re-run the particular tests
-	Extra                // Add the next level of failure string (up to \n\n)
+	Short                // Shows the first line of the failure string (up to \n) and info to re-run the particular tests
+	Long                 // Add the next level of failure string (up to \n\n)
 	Actuals              // Add the entire failure string and a (possibly shortened) representation of the actual value
 	Expecteds            // Add  (possibly shortened) representation(s) of  expected values.
-	Flood                // Adds granular information to diagnose the failure and ensures that all representations are unabridged. This level may inject flags into the tested item to make it more verbose.
+	Debug                // Adds granular information to diagnose the failure and ensures that all representations are unabridged. This level may inject flags into the tested item to make it more verbose.
 	Insane               // Adds information to test meta concerns, such as logic within assertions.
 )
 
@@ -77,11 +77,11 @@ func Assert(t T, actual interface{}, assertion should.Assertion, expected ...int
 		if StackDepth > 0 {
 			msg += fmt.Sprintf("\nTest Failure Stack Trace: %s\n\n", debug.FormattedCallStack(StackDepth))
 		}
-		msg += Sprintv(Terse, "Test failure: %s.\nTest path: %s\n", terseMsg, "testPath")
-		msg += Sprintv(Extra, "%s\n", extraMsg)
+		msg += Sprintv(Short, "Test failure: %s.\nTest path: %s\n", terseMsg, "testPath")
+		msg += Sprintv(Long, "%s\n", extraMsg)
 		msg += Inspectv(Actuals, "Actual", actual)
 		msg += Inspectv(Expecteds, "Expected", expected)
-		msg += Sprintv(Flood, "Failure Details: %s\n", detailsMsg)
+		msg += Sprintv(Debug, "Failure Details: %s\n", detailsMsg)
 		msg += Sprintv(Insane, "Meta Details: %s\n", metaMsg)
 		t.Error(msg)
 	}
