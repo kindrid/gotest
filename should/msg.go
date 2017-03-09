@@ -1,7 +1,6 @@
 package should
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -56,33 +55,6 @@ func SplitMsg(msg string) (short, long, details, meta string) {
 	if len(secs) > 2 {
 		meta = trim(secs[2])
 	}
-	return
-}
-
-func oldSplitMsg(msg string) (short, long, details, meta string) {
-	msgZ := len(msg)
-	findAndClean := func(start int, find string) (string, int) {
-		fmt.Printf("Searching from %d for %s.\n", start, find)
-		if start >= msgZ {
-			return "", msgZ
-		}
-		pos := strings.Index(msg[start:], find)
-		if pos < 0 { // not found
-			return "", start
-		}
-		return msg[start:pos], pos + len(find)
-	}
-	// shortZ := findOrSetToLength(ShortSeparator)
-	// longZ := findOrSetToLength(LongSeparator)
-	pos := 0
-	short, pos = findAndClean(pos, ShortSeparator)
-	if short == "" { // special case: not formatted by our rules or only a short message
-		short = msg
-		return
-	}
-	long, _ = findAndClean(pos, LongSeparator)
-	// details = msg[detailsZ:]
-	// meta = fail[metaZ:]
 	return
 }
 
