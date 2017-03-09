@@ -42,8 +42,8 @@ func splitShortLong(s string) (short, long string) {
 	return trim(s), ""
 }
 
-// SplitMsg divides a failure message into parts that may be muted depending on verbosity levels
-func SplitMsg(msg string) (short, long, details, meta string) {
+// ParseFailure divides a failure message into parts that may be muted depending on verbosity levels
+func ParseFailure(msg string) (short, long, details, meta string) {
 	if msg == "" {
 		return
 	}
@@ -58,8 +58,8 @@ func SplitMsg(msg string) (short, long, details, meta string) {
 	return
 }
 
-// JoinMsg creates a failure message from its components
-func JoinMsg(short, long, details, meta string) (result string) {
+// FormatFailure creates a failure message from its components
+func FormatFailure(short, long, details, meta string) (result string) {
 	result = short + ShortSeparator + long + SectionSeparator + details + SectionSeparator + meta
 	return
 }

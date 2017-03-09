@@ -83,7 +83,7 @@ func Inspectv(minLevel int, label string, inspected ...interface{}) (result stri
 func Assert(t T, actual interface{}, assertion should.Assertion, expected ...interface{}) {
 	fail := assertion(actual, expected...)
 	if fail != "" {
-		terseMsg, extraMsg, detailsMsg, metaMsg := should.SplitMsg(fail)
+		terseMsg, extraMsg, detailsMsg, metaMsg := should.ParseFailure(fail)
 		msg := ""
 		if StackDepth > 0 {
 			msg += fmt.Sprintf("\nTest Failure Stack Trace: %s\n\n", debug.FormattedCallStack(StackDepth))

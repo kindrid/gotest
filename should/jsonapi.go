@@ -78,7 +78,7 @@ func NotJSONAPIError(actual interface{}, expected ...interface{}) (fail string) 
 		return err.Error()
 	}
 	if json.PathExists("error") {
-		return JoinMsg(
+		return FormatFailure(
 			"You got what looks like a malformed jsonapi error. (It should only have .errors, an array, instead of .error, a singleton.)",
 			json.GetPath("error").String(),
 			"",
@@ -86,7 +86,7 @@ func NotJSONAPIError(actual interface{}, expected ...interface{}) (fail string) 
 		)
 	}
 	if json.PathExists("errors") {
-		return JoinMsg(
+		return FormatFailure(
 			"You expected a jsonapi return, but you got what looks like a jsonapi error.",
 			json.GetPath("errors").String(),
 			"",

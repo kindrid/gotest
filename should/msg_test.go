@@ -25,9 +25,9 @@ func testStringEqual(t *testing.T, actual, expected string) {
 
 func testMessageParse(t *testing.T, msg, short, long, details, meta string) {
 	if msg == "" {
-		msg = JoinMsg(short, long, details, meta)
+		msg = FormatFailure(short, long, details, meta)
 	}
-	s, l, d, m := SplitMsg(msg)
+	s, l, d, m := ParseFailure(msg)
 	testStringEqual(t, s, short)
 	testStringEqual(t, l, long)
 	testStringEqual(t, d, details)
@@ -36,13 +36,13 @@ func testMessageParse(t *testing.T, msg, short, long, details, meta string) {
 
 func skipTestFailureMessageCreation(t *testing.T) {
 	// Test everything and nothing
-	testStringEqual(t, JoinMsg(shortMsg, longMsg, detailsMsg, metaMsg), failAll)
-	testStringEqual(t, JoinMsg("", "", "", ""), ShortSeparator+SectionSeparator+SectionSeparator)
+	testStringEqual(t, FormatFailure(shortMsg, longMsg, detailsMsg, metaMsg), failAll)
+	testStringEqual(t, FormatFailure("", "", "", ""), ShortSeparator+SectionSeparator+SectionSeparator)
 
 	// Test combinations
-	testStringEqual(t, JoinMsg(shortMsg, "", "", ""), failShort+ShortSeparator+SectionSeparator+SectionSeparator)
-	testStringEqual(t, JoinMsg(shortMsg, "", detailsMsg, ""), failShort+ShortSeparator+failDetails+SectionSeparator)
-	testStringEqual(t, JoinMsg(shortMsg, "", "", metaMsg), failShortMeta)
+	testStringEqual(t, FormatFailure(shortMsg, "", "", ""), failShort+ShortSeparator+SectionSeparator+SectionSeparator)
+	testStringEqual(t, FormatFailure(shortMsg, "", detailsMsg, ""), failShort+ShortSeparator+failDetails+SectionSeparator)
+	testStringEqual(t, FormatFailure(shortMsg, "", "", metaMsg), failShortMeta)
 }
 
 func TestFailureMessageParsing(t *testing.T) {

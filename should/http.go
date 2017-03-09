@@ -62,5 +62,5 @@ func MatchHTTPStatusCode(actual interface{}, expected ...interface{}) (fail stri
 
 	// details formatted request
 
-	return JoinMsg(short, DescribeRequest(aRsp.Request), "", "")
+	return FormatFailure(short, DescribeRequest(aRsp.Request), "", "")
 }

@@ -29,13 +29,13 @@ func parseJSON(actual interface{}) (*gabs.Container, error) {
 	case string:
 		container, err := gabs.ParseJSON([]byte(v))
 		if err != nil {
-			return nil, fmt.Errorf(JoinMsg("Error parsing JSON.", err.Error(), "", ""))
+			return nil, fmt.Errorf(FormatFailure("Error parsing JSON.", err.Error(), "", ""))
 		}
 		return container, err
 	case *string:
 		container, err := gabs.ParseJSON([]byte(*v))
 		if err != nil {
-			return nil, fmt.Errorf(JoinMsg("Error parsing JSON.", err.Error(), "", ""))
+			return nil, fmt.Errorf(FormatFailure("Error parsing JSON.", err.Error(), "", ""))
 		}
 		return container, err
 	case []byte:
@@ -46,7 +46,7 @@ func parseJSON(actual interface{}) (*gabs.Container, error) {
 		return (*gabs.Container)(v), nil
 	default:
 		return nil, fmt.Errorf(
-			JoinMsg(
+			FormatFailure(
 				"JSON parser given a value it can't parse.",
 				fmt.Sprintf("Expecting a JSON string or a structure representing one, not a %T.", actual),
 				"", "",
@@ -91,7 +91,7 @@ func AllowFields(actual interface{}, expected ...interface{}) (fail string) {
 	}
 	fail = haveFields(json, false, expected...)
 	if fail != "" {
-		fail = JoinMsg("JSON field(s) do not match expected types.", fail, "", "")
+		fail = FormatFailure("JSON field(s) do not match expected types.", fail, "", "")
 	}
 	return
 }
@@ -147,12 +147,12 @@ func HaveOnlyFields(actual interface{}, allowed ...interface{}) (fail string) {
 
 	fail = haveOnlyKeys(json, allowed...)
 	if fail != "" {
-		fail = JoinMsg("JSON has unexpected fields.", fail, "", "")
+		fail = FormatFailure("JSON has unexpected fields.", fail, "", "")
 		return
 	}
 	fail = haveFields(json, false, allowed...)
 	if fail != "" {
-		fail = JoinMsg("JSON fields do not match expected type.", fail, "", "")
+		fail = FormatFailure("JSON fields do not match expected type.", fail, "", "")
 	}
 	return
 }
@@ -218,7 +218,7 @@ func HaveOnlyCamelcaseKeys(actual interface{}, ignored ...interface{}) (fail str
 
 	fail = checkCamelcaseKeys(json, ignoreMap)
 	if fail != "" {
-		fail = JoinMsg("JSON field names is not camelCase.", fail, "", "")
+		fail = FormatFailure("JSON field names is not camelCase.", fail, "", "")
 	}
 	return
 }
