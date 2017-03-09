@@ -3,12 +3,37 @@ package should
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
-// DescribeResponse give tests a way to, if failing, dump the request and
-// response without having every test method do it.
+// DescribeResponse gives a short-ish report of a response
 func DescribeResponse(rsp *http.Response) (desc string) {
-	return "WIP--see goblue.blueprint.Harness.formatResponse"
+	template := `%d %s
+%s
+-----body----
+%s`
+	var headers []string
+	for k, v := range rsp.Header {
+		headers = append(headers, fmt.Sprintf("%15s: %s", k, v))
+	}
+	body := rsp.Body
+	desc = fmt.Sprintf(template, rsp.StatusCode, rsp.Status, headers, body)
+	return
+}
+
+// DescribeRequest gives a short-ish report of a request.
+func DescribeRequest(req *http.Request) (desc string) {
+	var headers []string
+	for k, v := range req.Header {
+		headers = append(headers, fmt.Sprintf("%15s: %s", k, v))
+	}
+	body := req.Body
+	template := `%s %s
+%s
+-----body----
+%s`
+	desc = fmt.Sprintf(template, req.Method, req.URL, strings.Join(headers, "\n"), body)
+	return
 }
 
 // MatchHTTPStatusCode asserts that the documented and actual HTTP status codes match
@@ -29,9 +54,13 @@ func MatchHTTPStatusCode(actual interface{}, expected ...interface{}) (fail stri
 		return ""
 	}
 
-	return fmt.Sprintf(
-		"HTTP DEBUG Status Expected: %d %s. Got: %d %s.",
+	short := fmt.Sprintf(
+		"HTTP Status Expected: %d %s. Got: %d %s.",
 		eStatus, http.StatusText(int(eStatus)),
 		aStatus, http.StatusText(aStatus),
 	)
+
+	// details formatted request
+
+	return JoinMsg(short, DescribeRequest(aRsp.Request), "", "")
 }

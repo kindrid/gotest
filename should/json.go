@@ -83,7 +83,11 @@ func AllowFields(actual interface{}, expected ...interface{}) (fail string) {
 	if err != nil {
 		return err.Error()
 	}
-	return haveFields(json, false, expected...)
+	fail = haveFields(json, false, expected...)
+	if fail != "" {
+		fail = JoinMsg("JSON field(s) do not match expected types.", fail, "", "")
+	}
+	return
 }
 
 // haveFields checks to see if json contains fields and types matching expected.
@@ -115,6 +119,7 @@ func haveFields(json *gabs.Container, required bool, expected ...interface{}) (f
 			fail += fmt.Sprintf("Expecting a '%s' value of type %s, got %s.\nJSON: %s", fieldPath, expectedKind, actualKind, json)
 		}
 	}
+
 	return
 }
 
@@ -134,8 +139,15 @@ func HaveOnlyFields(actual interface{}, allowed ...interface{}) (fail string) {
 		return err.Error()
 	}
 
-	fail += haveFields(json, false, allowed...)
-	fail += haveOnlyKeys(json, allowed...)
+	fail = haveOnlyKeys(json, allowed...)
+	if fail != "" {
+		fail = JoinMsg("JSON has unexpected fields.", fail, "", "")
+		return
+	}
+	fail = haveFields(json, false, allowed...)
+	if fail != "" {
+		fail = JoinMsg("JSON fields do not match expected type.", fail, "", "")
+	}
 	return
 }
 
@@ -171,7 +183,7 @@ func BeJSON(actual interface{}, expected ...interface{}) (fail string) {
 	}
 	_, err := parseJSON(actual)
 	if err != nil {
-		return err.Error()
+		return JoinMsg("JSON does not parse.", err.Error(), "", "")
 	}
 	return ""
 }
@@ -198,7 +210,11 @@ func HaveOnlyCamelcaseKeys(actual interface{}, ignored ...interface{}) (fail str
 		ignoreMap[igS] = true
 	}
 
-	return checkCamelcaseKeys(json, ignoreMap)
+	fail = checkCamelcaseKeys(json, ignoreMap)
+	if fail != "" {
+		fail = JoinMsg("JSON field names is not camelCase.", fail, "", "")
+	}
+	return
 }
 
 var camelCaseRegexp = regexp.MustCompile(`^[a-z][a-zA-Z0-9]*$`)

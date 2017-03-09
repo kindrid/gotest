@@ -37,5 +37,5 @@ func CallStack(maxDepth int) (result []string) {
 
 // FormattedCallStack returns the call stack printout as lines.
 func FormattedCallStack(maxDepth int) string {
-	return strings.Join(CallStack(maxDepth), "\n")
+	return strings.Trim(strings.Join(CallStack(maxDepth), "\n"), " \n\r\t")
 }
