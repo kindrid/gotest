@@ -18,6 +18,8 @@ in `should` like this:
 
 Assertions are just funcions that accept interfaces and return a non-empty string if there's an error. Look at `gotest.should.Assertion` for the details. Look at `should/doc.go` and `should/assertion.go` ofr more details.
 
+Gotest adds some command-line options to your tests. You can see them via `go test . -args -help`. Note that gotest has its own verbosity flag which controls different aspects than `-test.v`.
+
 Overview
 
 GoTest plays well with "vernacular" Go `testing` tests, providing a rich set of

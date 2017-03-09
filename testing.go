@@ -31,8 +31,8 @@ const (
 )
 
 func init() {
-	flag.IntVar(&StackDepth, "stack", 0, "stack-trace depth on failure")
-	flag.IntVar(&Verbosity, "v", 0, "verbosity level--see github.com/kindrid/gotest/testing.go for conventions")
+	flag.IntVar(&StackDepth, "gotest-stack", 0, "stack-trace depth on failure")
+	flag.IntVar(&Verbosity, "gotest-verbosity", 0, "verbosity level: 0=silent, 1=short, 2=long, 3=show-actuals, \n\t4=show-expecteds, 5=show-debugging-details, 6=show-test-internals")
 }
 
 // T describes the interface provided by Go's std.testing.T. If only they had
