@@ -3,43 +3,61 @@ package should
 import (
 	"fmt"
 	"strings"
+
+	"github.com/y0ssar1an/q"
 )
 
 // tools for working with failure messages
 
 const (
-	// ShortSeparator ends the failure message brief portion (and begins the explanation)
+	// ShortSeparator ends the failure message short portion (and begins the long
+	// portion)
 	ShortSeparator = "\n"
-	// LongSeparator ends the failure message explanation section (and begins the details)
+
+	// ShortLength is an arbitrary length used to shorten failure messages that
+	// don't contain ShortSeparator
+	ShortLength = 80
+
+	// LongSeparator ends the failure message explanation section (and begins the
+	// details)
 	LongSeparator = "\n# DETAILS:"
-	// DetailsSeparator ends the failure debugging portion (and begins details for debugging asserts and test runner.)
+
+	// DetailsSeparator ends the failure debugging portion (and begins details for
+	// debugging asserts and test runner.)
 	DetailsSeparator = "\n# INTERNALS:"
+
+	// SectionSeparator separates the long, details, and internals sections.
+	SectionSeparator = "\n~~~~~~~~~~\n"
 )
+
+func trim(s string) string {
+	return strings.Trim(s, " \n\t\r")
+}
+
+func splitShortLong(s string) (short, long string) {
+	sl := strings.SplitN(trim(s), ShortSeparator, 2)
+	q.Q(s, `"`, trim(s), `"`, sl)
+	if len(sl) > 1 {
+		return trim(sl[0]), trim(sl[1])
+	}
+	if len(s) > ShortLength {
+		return trim(s[:ShortLength]), trim(s[ShortLength:])
+	}
+	return trim(s), ""
+}
 
 // SplitMsg divides a failure message into parts that may be muted depending on verbosity levels
 func SplitMsg(msg string) (short, long, details, meta string) {
-	chop := func(s, sep string) (found, rest string) {
-		pos := strings.Index(s, sep)
-		if pos < 0 {
-			rest = s
-		} else {
-			found = s[:pos]
-			rest = s[pos+len(sep):]
-		}
+	if msg == "" {
 		return
 	}
-	short, long = chop(msg, ShortSeparator)
-	// fmt.Printf("msg %s\n short %s\n", msg, short)
-	long, details = chop(long, LongSeparator)
-	// fmt.Printf("long %s\n details %s\n", long, details)
-	details, meta = chop(details, DetailsSeparator)
-	// fmt.Printf("details %s\n meta %s\n", details, meta)
-	if short == "" {
-		return msg, "", "", ""
-	} else if long == "" && details == "" {
-		return short, meta, "", ""
-	} else if details == "" {
-		return short, long, meta, ""
+	secs := strings.Split(msg, SectionSeparator)
+	short, long = splitShortLong(secs[0])
+	if len(secs) > 1 {
+		details = trim(secs[1])
+	}
+	if len(secs) > 2 {
+		meta = trim(secs[2])
 	}
 	return
 }
@@ -73,15 +91,6 @@ func oldSplitMsg(msg string) (short, long, details, meta string) {
 
 // JoinMsg creates a failure message from its components
 func JoinMsg(short, long, details, meta string) (result string) {
-	result = short
-	if long != "" {
-		result += ShortSeparator + long
-	}
-	if details != "" {
-		result += LongSeparator + details
-	}
-	if meta != "" {
-		result += DetailsSeparator + meta
-	}
+	result = short + ShortSeparator + long + SectionSeparator + details + SectionSeparator + meta
 	return
 }
