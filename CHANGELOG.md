@@ -14,9 +14,12 @@ Each version should:
 - **Security**: to invite users to upgrade in case of vulnerabilities.
 
 ## [0.9.5] unreleased
+### Added
+- Verbosity control: `--gotest-verbosity`
+- Stack trace control: `--gotest-stack`
 ### Changed
 - updated godog version
-- should.MatchHTTPStatusCode is less verbose
+- `should.MatchHTTPStatusCode` is less verbose
 - slight improvements to documentation.
 
 ## [0.9.4] 2017-02-21
@@ -25,7 +28,7 @@ Each version should:
 - StructureExplorer.PathExists() returns true if a path points to a structure element with a non-nil value
 - GetVersion() and GetCommit() give info about the code version.
 ### Changed
-- Migrating some json checks to use the StructureExplorer interface instead of *gabs.Container. (Should probably make StructureExplorer its own subpackage.)
+- Migrating some json checks to use the `StructureExplorer` interface instead of `*gabs.Container`. (Should probably make `StructureExplorer` its own subpackage.)
 
 ## [0.9.3] 2017-02-16
 ### Added
