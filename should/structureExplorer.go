@@ -105,7 +105,7 @@ func (ge *GabsExplorer) GetPathCheck(path string) (se StructureExplorer, ok bool
 // element isn't found, return's .Data() == nil
 func (ge *GabsExplorer) PathExists(path string) bool {
 	se := ge.GetPath(path)
-	return se.Data != nil
+	return se.Data() != nil
 }
 
 // GetPath returns the the element from an object structure by name. If the

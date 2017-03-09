@@ -14,7 +14,6 @@ func testBeJSONAPIRecord(t *testing.T) {
 	Passes(t, "Self documents if passed nil", StartWith, BeJSONAPIRecord(nil), "BeJSONAPIRecord expects")
 	Passes(t, "Record parses", BeNil, err)
 	Passes(t, "Looks like a JSON:API single-record response.", BeJSONAPIRecord, json)
-
 }
 
 func testBeResourceIdentifier(t *testing.T) {

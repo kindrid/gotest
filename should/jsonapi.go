@@ -25,8 +25,10 @@ func BeJSONAPIResourceIdentifier(actual interface{}, expected ...interface{}) (f
 
 func beJSONAPIResourceIdentifier(json *gabs.Container) (fail string) {
 	var fields = []interface{}{"id", reflect.String, "type", reflect.String}
-	fail += HaveFields(json, fields...)
-	fail += HaveOnlyFields(json, fields...)
+	fail = HaveFields(json, fields...)
+	if fail == "" {
+		fail += HaveOnlyFields(json, fields...)
+	}
 	return
 }
 
@@ -42,28 +44,39 @@ func BeJSONAPIRecord(actual interface{}, expected ...interface{}) (fail string) 
 		return err.Error()
 	}
 
-	// Turn this on later
-	// se := (*GabsExplorer)(json)
-	// prevent a confusing cascade of messages if we get a jsonapi error
-	// fail += looksLikeError(se)
-	// if fail != "" {
-	// 	return
+	// var links, included string
+	// These aren't checked yet, so this throws an ineffectual assignment warning
+	// if element := json.Search("links"); element != nil {
+	// 	links = BeValidLinks(element)
 	// }
-	fail += HaveFields(json, "meta", reflect.Map, "data", reflect.Map)
-	fail += HaveOnlyFields(json, "meta", reflect.Map, "data", reflect.Map, "links", reflect.Map, "included", reflect.Slice)
-	fail += beValidMeta(json.Search("meta"))
-	fail += beValidRecord(json.Search("data"))
-	if links := json.Search("links"); links != nil {
-		fail += beValidLinks(links)
-	}
-	if included := json.Search("included"); included != nil {
-		fail += beValidIncluded(included)
-	}
-	fail += HaveOnlyCamelcaseKeys(json)
+	// if element := json.Search("included"); element != nil {
+	// 	included = BeValidIncluded(element)
+	// }
+
+	fail = FailFirst(
+		NotJSONAPIError(json),
+		HaveFields(json, "meta", reflect.Map, "data", reflect.Map),
+		HaveOnlyFields(json, "meta", reflect.Map, "data", reflect.Map, "links", reflect.Map, "included", reflect.Slice),
+		BeValidRecord(json.Search("data")),
+		HaveOnlyCamelcaseKeys(json),
+		// BeValidMeta(json.Search("meta")),
+		// links,
+		// included,
+	)
 	return
 }
 
-func looksLikeError(json StructureExplorer) (fail string) {
+// NotJSONAPIError returns a non-blank string if the JSON appears to be a
+// JSONAPI error response
+func NotJSONAPIError(actual interface{}, expected ...interface{}) (fail string) {
+	usage := "BeJSONAPIArray expects a single string argument and passes if that argument parses as a JSONAPI multi-object array."
+	if actual == nil {
+		return usage
+	}
+	json, err := ParseJSON(actual)
+	if err != nil {
+		return err.Error()
+	}
 	if json.PathExists("errors") {
 		fail = "You expected a jsonapi return, but you got what looks like a jsonapi error."
 	}
@@ -85,24 +98,15 @@ func BeJSONAPIArray(actual interface{}, expected ...interface{}) (fail string) {
 		return err.Error()
 	}
 
-	// Turn this on later
-	// se := (*GabsExplorer)(json) // using the StructureExplorer interface
-	// // prevent a confusing cascade of messages if we get a jsonapi error
-	// fail += looksLikeError(se)
-	// if fail != "" {
-	// 	return
-	// }
+	FailFirst(
+		NotJSONAPIError(json),
+		HaveFields(json, "meta", reflect.Map, "data", reflect.Slice),
+		HaveOnlyFields(json, "meta", reflect.Map, "data", reflect.Slice, "links", reflect.Map, "included", reflect.Slice),
+		BeValidRecordArray(json.Search("data")),
+		// check links
+		// check includes
+	)
 
-	fail += HaveFields(json, "meta", reflect.Map, "data", reflect.Slice)
-	fail += HaveOnlyFields(json, "meta", reflect.Map, "data", reflect.Slice, "links", reflect.Map, "included", reflect.Slice)
-	fail += beValidMeta(json.Search("meta"))
-	fail += beValidRecordArray(json.Search("data"))
-	if links := json.Search("links"); links != nil {
-		fail += beValidLinks(links)
-	}
-	if included := json.Search("included"); included != nil {
-		fail += beValidIncluded(included)
-	}
 	return
 }
 
@@ -123,34 +127,39 @@ func BeJSONAPI(actual interface{}, expected ...interface{}) (fail string) {
 	return BeJSONAPIRecord(actual, expected)
 }
 
-func beValidMeta(json *gabs.Container) (fail string) {
-	// Kindrid Specific:
-	// fail += HaveFields(json, "apiVersion", reflect.String, "formatVersion", reflect.String)
+// func BeValidMeta(json *gabs.Container) (fail string) {
+// 	// Kindrid Specific:
+// 	// fail += HaveFields(json, "apiVersion", reflect.String, "formatVersion", reflect.String)
+// 	return
+// }
+
+// BeValidRecord returns a non-blank string if json doesn't comply with
+// JSONAPI rules for a resource record
+func BeValidRecord(json *gabs.Container) (fail string) {
+	fail = HaveFields(json, "id", reflect.String, "type", reflect.String)
 	return
 }
 
-func beValidRecord(json *gabs.Container) (fail string) {
-	fail += HaveFields(json, "id", reflect.String, "type", reflect.String)
-	return
-}
-
-func beValidRecordArray(json *gabs.Container) (fail string) {
+// BeValidRecordArray returns a non-blank string if json doesn't comply with
+// JSONAPI rules for an array of resource records
+func BeValidRecordArray(json *gabs.Container) (fail string) {
 	children, err := json.Children()
 	if err != nil {
 		return err.Error()
 	}
 	for _, record := range children {
-		if fail = beValidRecord(record); fail != "" {
+		if fail = BeValidRecord(record); fail != "" {
 			return
 		}
 	}
 	return
 }
 
-func beValidLinks(json *gabs.Container) (fail string) {
-	return
-}
-
-func beValidIncluded(json *gabs.Container) (fail string) {
-	return
-}
+//
+// func BeValidLinks(json *gabs.Container) (fail string) {
+// 	return
+// }
+//
+// func BeValidIncluded(json *gabs.Container) (fail string) {
+// 	return
+// }

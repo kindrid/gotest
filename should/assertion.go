@@ -50,3 +50,14 @@ func minimally(min int, expected []interface{}) string {
 	}
 	return Ok
 }
+
+// FailFirst returns the first non-blank failure string in a list of
+// assertion returns.
+func FailFirst(msgs ...string) string {
+	for _, m := range msgs {
+		if m != "" {
+			return m
+		}
+	}
+	return ""
+}

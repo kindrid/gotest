@@ -29,13 +29,13 @@ func parseJSON(actual interface{}) (*gabs.Container, error) {
 	case string:
 		container, err := gabs.ParseJSON([]byte(v))
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing JSON: %s\nBody: %s", err, v)
+			return nil, fmt.Errorf(JoinMsg("Error parsing JSON.", err.Error(), "", ""))
 		}
 		return container, err
 	case *string:
 		container, err := gabs.ParseJSON([]byte(*v))
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing JSON: %s\nBody: %s", err, *v)
+			return nil, fmt.Errorf(JoinMsg("Error parsing JSON.", err.Error(), "", ""))
 		}
 		return container, err
 	case []byte:
@@ -45,7 +45,13 @@ func parseJSON(actual interface{}) (*gabs.Container, error) {
 	case *GabsExplorer: // until we convert the other tests over to use StructureExplorers
 		return (*gabs.Container)(v), nil
 	default:
-		return nil, fmt.Errorf("Expecting a JSON string or a structure representing one, not a %T.", actual)
+		return nil, fmt.Errorf(
+			JoinMsg(
+				"JSON parser given a value it can't parse.",
+				fmt.Sprintf("Expecting a JSON string or a structure representing one, not a %T.", actual),
+				"", "",
+			),
+		)
 	}
 }
 
@@ -183,7 +189,7 @@ func BeJSON(actual interface{}, expected ...interface{}) (fail string) {
 	}
 	_, err := parseJSON(actual)
 	if err != nil {
-		return JoinMsg("JSON does not parse.", err.Error(), "", "")
+		return err.Error()
 	}
 	return ""
 }
