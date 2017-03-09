@@ -22,7 +22,7 @@ test-watch:
 code-quality:
 	@echo "Checking for debugging figments"
 	@! grep --exclude Makefile --exclude-dir vendor -nIR 'y0ssar1an/q' *
-	@! grep --exclude Makefile --exclude-dir vendor -nIR 'DEBUG' *
+	@! egrep --exclude Makefile --exclude-dir vendor -nIR '# *DEBUG' *
 
 # package location for compiled-in values
 INJECT_VARS_SITE = gotest
