@@ -3,8 +3,6 @@ package should
 import (
 	"fmt"
 	"strings"
-
-	"github.com/y0ssar1an/q"
 )
 
 // tools for working with failure messages
@@ -36,7 +34,6 @@ func trim(s string) string {
 
 func splitShortLong(s string) (short, long string) {
 	sl := strings.SplitN(trim(s), ShortSeparator, 2)
-	q.Q(s, `"`, trim(s), `"`, sl)
 	if len(sl) > 1 {
 		return trim(sl[0]), trim(sl[1])
 	}
