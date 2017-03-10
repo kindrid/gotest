@@ -38,16 +38,36 @@ const (
 // check it.
 var StackDepth int
 
+// StackLevel sets the number of stack frames to ignore before printing out
+// stack traces. This can help remove some extraneous levels from within test
+// runners and utility functions.
+var StackLevel int
+
 // Verbosity sets a level of "chattiness" for the tests. It is puporsefully
 // public so tests using this library can manipulate it and check it.
 var Verbosity int
 
-var failFast bool
+// FailFast halts testing with testing.FailNow() upon the first error. This will
+// usually result in less output and quicker failures, but read the
+// `testing.FailNow() to understand its limitations
+var FailFast bool
 
-func init() {
-	flag.IntVar(&StackDepth, "gotest-stack", 0, "stack-trace depth on failure")
-	flag.IntVar(&Verbosity, "gotest-verbosity", 0, "verbosity level: -1=silent, 0=short, 1=long, 2=show-actuals, \n\t3=show-expecteds, 4=show-debugging-details, 5=show-test-internals")
-	flag.BoolVar(&failFast, "gotest-failfast", false, "cause tests to exit with errorcode=1 after the first assertion failure")
+// RegisterFlags adds CLI flags to tailor these testing parameters. Call this
+// function within your test code's init(). Use them with gotest -args. For
+// example `gotest . -args -gotest-depth 5`.
+func RegisterFlags(prefix string) {
+	if prefix == "" {
+		prefix = "gotest-"
+	}
+	depthFlagName := prefix + "depth"
+
+	if flag.Lookup(depthFlagName) != nil {
+		return // prevent multiple registrations
+	}
+	flag.IntVar(&StackDepth, depthFlagName, 0, "stack trace depth on failure")
+	flag.IntVar(&StackLevel, prefix+"level", 0, "number of stack frames to ignore before printing stack-depth frames")
+	flag.IntVar(&Verbosity, prefix+"verbosity", 0, "verbosity level: -1=silent, 0=short, 1=long, 2=show-actuals, \n\t3=show-expecteds, 4=show-debugging-details, 5=show-test-internals")
+	flag.BoolVar(&FailFast, prefix+"failfast", false, "cause tests to exit with errorcode=1 after the first assertion failure")
 }
 
 // Vocal makes an easy way to gate operations by verbosity level. It returns true if Verbosity is < minLevel.
@@ -81,12 +101,13 @@ func Inspectv(minLevel int, label string, inspected ...interface{}) (result stri
 
 // Assert wraps any standard Assertion for use with Go's std.testing library.
 func Assert(t T, actual interface{}, assertion should.Assertion, expected ...interface{}) {
+
 	fail := assertion(actual, expected...)
 	if fail != "" {
 		terseMsg, extraMsg, detailsMsg, metaMsg := should.ParseFailure(fail)
 		msg := ""
 		if StackDepth > 0 {
-			msg += fmt.Sprintf("\nTest Failure Stack Trace: %s\n\n", debug.FormattedCallStack(StackDepth))
+			msg += fmt.Sprintf("\nTest Failure Stack Trace: %s\n\n", debug.FormattedCallStack(StackLevel, StackDepth))
 		}
 		name := t.Name()
 		msg += Sprintv(Short, "Failed %s: %s", name, terseMsg)
@@ -99,7 +120,7 @@ func Assert(t T, actual interface{}, assertion should.Assertion, expected ...int
 		if metaMsg != "" {
 			msg += Sprintv(Insane, "\nINTERNALS (FOR DEBUGGING ASSERTIONS): %s\n", metaMsg)
 		}
-		if failFast {
+		if FailFast {
 			msg += "\nNOTE: skipping remaining assertions for this test because of --gotest-failfast."
 			t.Error(msg)
 			t.FailNow()

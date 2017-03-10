@@ -22,10 +22,12 @@ func CallerSimple(depth int) string {
 }
 
 // CallStack gives a short array of the call stack descriptions.
-func CallStack(maxDepth int) (result []string) {
-	const offset = 1
+func CallStack(startDepth, maxDepth int) (result []string) {
+	if startDepth < 3 {
+		startDepth = 3 // at least ignore this code and the caller
+	}
 	result = make([]string, maxDepth)
-	for i := offset; i < maxDepth+offset; i++ {
+	for i := startDepth; i < maxDepth+startDepth; i++ {
 		msg, _, _ := CallerInfo(i)
 		if msg == "" {
 			break
@@ -36,6 +38,6 @@ func CallStack(maxDepth int) (result []string) {
 }
 
 // FormattedCallStack returns the call stack printout as lines.
-func FormattedCallStack(maxDepth int) string {
-	return strings.Trim(strings.Join(CallStack(maxDepth), "\n"), " \n\r\t")
+func FormattedCallStack(startDepth, maxDepth int) string {
+	return strings.Trim(strings.Join(CallStack(startDepth, maxDepth), "\n"), " \n\r\t")
 }
