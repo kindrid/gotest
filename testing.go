@@ -111,9 +111,9 @@ func Assert(t T, actual interface{}, assertion should.Assertion, expected ...int
 		}
 		name := t.Name()
 		msg += Sprintv(Short, "Failed %s: %s", name, terseMsg)
-		msg += Sprintv(Long, "\n%s\n", extraMsg)
-		msg += Inspectv(Actuals, "\nDUMP OF ACTUAL VALUE", actual)
-		msg += Inspectv(Expecteds, "\nDUMP OF EXPECTED VALUE", expected)
+		msg += Sprintv(Long, "\n%s\n", extraMsg+"\nCalls:"+debug.ShortStack(3, 10))
+		msg += Inspectv(Actuals, "\nACTUAL VALUE", actual)
+		msg += Inspectv(Expecteds, "\nDEXPECTED VALUE", expected)
 		if detailsMsg != "" {
 			msg += Sprintv(Debug, "\nFAILURE DETAILS: %s\n", detailsMsg)
 		}
@@ -125,6 +125,7 @@ func Assert(t T, actual interface{}, assertion should.Assertion, expected ...int
 			t.Error(msg)
 			t.FailNow()
 		}
+		msg += "\n"
 		t.Error(msg)
 	}
 }
