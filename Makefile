@@ -4,8 +4,9 @@ BRANCH = ${shell git rev-parse --abbrev-ref HEAD}
 # THIS WON'T WORK WITH A LIBRARY BUILD!
 BUILD_VARS = -X ${INJECT_VARS_SITE}.Version=${VERSION} -X ${INJECT_VARS_SITE}.Commit=${COMMIT}
 
-init:
-	glide install
+glide: ${GOPATH}/bin/glide
+${GOPATH}/bin/glide:
+	curl https://glide.sh/get | sh
 
 test:
 	go clean
@@ -28,7 +29,8 @@ code-quality:
 INJECT_VARS_SITE = gotest
 
 # create libs
-build: init
+build: glide
+	glide install
 	go build -v -ldflags "${BUILD_VARS}"  ./...
 
 # create any distribution files
@@ -38,9 +40,7 @@ release:
 	github-release kindrid/gotest ${VERSION} ${BRANCH} copyTheChangeLogManually CHANGELOG.md
 
 # Convention for our vendored builds on Semaphore
-ci-build:
-	curl https://glide.sh/get | sh
-	build
+ci-build: build
 
 # Semaphore preliminaries
 ci-before: code-quality ci-build
