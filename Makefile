@@ -5,7 +5,7 @@ BRANCH = ${shell git rev-parse --abbrev-ref HEAD}
 BUILD_VARS = -X ${INJECT_VARS_SITE}.Version=${VERSION} -X ${INJECT_VARS_SITE}.Commit=${COMMIT}
 
 init:
-	go get -t -v ./...
+	glide install
 
 test:
 	go clean
