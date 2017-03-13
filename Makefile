@@ -29,7 +29,7 @@ INJECT_VARS_SITE = gotest
 
 # create libs
 build: init
-	go build -v -ldflags "${BUILD_VARS}"  ./...
+
 
 # create any distribution files
 dist: build
@@ -40,7 +40,8 @@ release:
 # Convention for our vendored builds on Semaphore
 ci-build:
 	curl https://glide.sh/get | sh
-	build
+	glide init
+	go build -v -ldflags "${BUILD_VARS}"  ./...
 
 # Semaphore preliminaries
 ci-before: code-quality ci-build
