@@ -38,7 +38,9 @@ release:
 	github-release kindrid/gotest ${VERSION} ${BRANCH} copyTheChangeLogManually CHANGELOG.md
 
 # Convention for our vendored builds on Semaphore
-ci-build: build
+ci-build:
+	curl https://glide.sh/get | sh
+	build
 
 # Semaphore preliminaries
 ci-before: code-quality ci-build
