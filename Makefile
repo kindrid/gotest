@@ -10,7 +10,7 @@ ${GOPATH}/bin/glide:
 
 test:
 	go clean
-	go test ./ ./should
+	go test ./ ./should ./debug
 
 cover:
 	go clean
@@ -31,7 +31,7 @@ INJECT_VARS_SITE = gotest
 # create libs
 build: glide
 	glide install
-	go build -v -ldflags "${BUILD_VARS}"  ./...
+	go build -v -ldflags "${BUILD_VARS}"  $(glide novendor)
 
 # create any distribution files
 dist: build
