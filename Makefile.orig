@@ -29,9 +29,14 @@ code-quality:
 INJECT_VARS_SITE = gotest
 
 # create libs
+<<<<<<< HEAD
+build: init
+
+=======
 build: glide
 	glide install
 	go build -v -ldflags "${BUILD_VARS}"  $(glide novendor)
+>>>>>>> 0e912f42d2b86f17a8fd53e8156ccf92cfc549d6
 
 # create any distribution files
 dist: build
@@ -40,7 +45,14 @@ release:
 	github-release kindrid/gotest ${VERSION} ${BRANCH} copyTheChangeLogManually CHANGELOG.md
 
 # Convention for our vendored builds on Semaphore
+<<<<<<< HEAD
+ci-build:
+	curl https://glide.sh/get | sh
+	glide init
+	go build -v -ldflags "${BUILD_VARS}"  ./...
+=======
 ci-build: build
+>>>>>>> 0e912f42d2b86f17a8fd53e8156ccf92cfc549d6
 
 # Semaphore preliminaries
 ci-before: code-quality ci-build
