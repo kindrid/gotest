@@ -263,3 +263,46 @@ func checkCamelcaseKeys(j *gabs.Container, ignores map[string]bool) (fail string
 	// otherwise this is an atomic object. No check necessary.
 	return ""
 }
+
+// BeSortedByField passes if actual parses to JSON and has an element named
+// args[0] in which every element has a field named arg[1] which is sorted,
+// ascending by default, if arg[2] is true, the sort is descending.
+func BeSortedByField(actual interface{}, args ...interface{}) (fail string) {
+	usage := "BeSortedByField expects parseable JSON in actual. It extracts an item arg[0] from the json and checks that it is sorted on field arg[1], ascending by default, descending if arg[2] == true."
+	if actual == nil || len(args) < 2 {
+		return usage
+	}
+
+	element := "data"
+	field := "completed"
+	isDescending := true
+	// element, elementOk := args[0].(string)
+	json, err := parseJSON(actual)
+	if err != nil {
+		return err.Error()
+	}
+
+	initialized := false
+	prev := ""
+	for i, item := range json.Search(element).Children() {
+		if !initialized {
+			prev = item.Search(field).Data().(string)
+		}
+		cur := item.Search(field).Data().(string)
+		if isDescending {
+			fail = BeLessThanOrEqualTo(cur, prev)
+		} else {
+			fail = BeGreaterThanOrEqualTo(cur, prev)
+		}
+		if fail != "" {
+			direction := ">="
+			if isDescending {
+				direction = "<="
+			}
+			return fmt.Sprintf("Expecting a sorted list, But item[%d]=%s is not %s than item[%d]=%s [%s]", i, cur, direction, i-1, prev, fail)
+		}
+		prev = cur
+	}
+
+	return
+}

@@ -17,12 +17,13 @@ Each version should:
 ### Added
 - Verbosity control: `--gotest-verbosity`
 - Stack trace control: `--gotest-stack`
-- Removed `vendor/`.
-- Removed all traces of `goconvey`.
+- Added JSON assertion `should.BeSortedBy`
 ### Changed
-- Dependency updates
 - `should.MatchHTTPStatusCode` is less verbose
-- slight improvements to documentation.
+- Dependency updates
+- Removed `vendor/`
+- Removed all traces of `goconvey`
+- Documentation improvements
 
 ## [0.9.4] 2017-02-21
 ### Added
