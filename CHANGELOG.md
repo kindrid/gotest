@@ -13,12 +13,14 @@ Each version should:
 - **Fixed**: for any bug fixes.
 - **Security**: to invite users to upgrade in case of vulnerabilities.
 
-## [0.9.5] unreleased
+## [0.9.?] unreleased
 ### Added
 - Verbosity control: `--gotest-verbosity`
 - Stack trace control: `--gotest-stack`
+- Removed `vendor/`.
+- Removed all traces of `goconvey`.
 ### Changed
-- updated godog version
+- Dependency updates
 - `should.MatchHTTPStatusCode` is less verbose
 - slight improvements to documentation.
 
