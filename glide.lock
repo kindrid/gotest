@@ -1,5 +1,5 @@
-hash: a6780653aa7c959d79e7d7f1b82936a70471ef4ec7848a6e1e7bf41e0c39bf70
-updated: 2017-03-09T17:09:34.829211804-05:00
+hash: 0ebe0ebb6a8b7c8ba033cabc06a72a92497c21a6df89b46b68828134d951a7f7
+updated: 2017-03-15T15:09:41.513434311-04:00
 imports:
 - name: github.com/DATA-DOG/godog
   version: cf8fbb4ad0d5fab464a5c9b79abbcfbd7c27e85b
