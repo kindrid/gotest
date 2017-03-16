@@ -264,42 +264,108 @@ func checkCamelcaseKeys(j *gabs.Container, ignores map[string]bool) (fail string
 	return ""
 }
 
+func argsForBesortedByField(
+	actual interface{}, args ...interface{}) (
+	parsedActual StructureExplorer,
+	elementPath, fieldName string, isDescending bool,
+	fail string,
+) {
+	var (
+		err error
+		ok  bool
+	)
+	usage := "BeSortedByField expects parseable JSON and at least two right-side args. \nThe JSON is in the left-side arg. It extracts an item arg[0] from the json and checks that it is sorted on field arg[1], ascending by default, descending if arg[2] == true."
+	if actual == nil {
+		fail = FormatFailure(usage, "", "", "")
+		return
+	}
+	// grab the JSON in actual
+	if parsedActual, err = ParseJSON(actual); err != nil {
+		fail = FormatFailure("Error Parsing JSON", fmt.Sprintf("%s\n%s", usage, err.Error()), "", "")
+		return
+	}
+	// grab the elementPath and field Name
+	if len(args) < 2 {
+		fail = FormatFailure(fmt.Sprintf("Expecting at least 2 right-side arguments, got %d", len(args)), usage, "", "")
+	}
+	if elementPath, ok = args[0].(string); !ok {
+		msg := fmt.Sprintf("Expected elementPath to be a string but got %#v instead", args[0])
+		fail = FormatFailure(msg, usage, "", "")
+		return
+	}
+	if fieldName, ok = args[1].(string); !ok {
+		msg := fmt.Sprintf("Expected fieldName to be a string but got %#v instead", args[1])
+		fail = FormatFailure(msg, usage, "", "")
+		return
+	}
+	// grab optional direction param
+	if len(args) >= 3 {
+		if isDescending, ok = args[2].(bool); !ok {
+			msg := fmt.Sprintf("Expected isDecending, if present, to be a bool but got %#v instead", args[2])
+			fail = FormatFailure(msg, usage, "", "")
+			return
+		}
+	}
+	return
+}
+
 // BeSortedByField passes if actual parses to JSON and has an element named
 // args[0] in which every element has a field named arg[1] which is sorted,
 // ascending by default, if arg[2] is true, the sort is descending.
 func BeSortedByField(actual interface{}, args ...interface{}) (fail string) {
-	usage := "BeSortedByField expects parseable JSON in actual. It extracts an item arg[0] from the json and checks that it is sorted on field arg[1], ascending by default, descending if arg[2] == true."
-	if actual == nil || len(args) < 2 {
-		return usage
+	json, path, field, isDescending, fail := argsForBesortedByField(actual, args...)
+	if fail != "" {
+		return
+	}
+	_, _, _, _ = json, path, field, isDescending
+	data, ok := json.GetPathCheck(path)
+	if !(ok && data.IsArray()) {
+		fail = FormatFailure(fmt.Sprintf("Actual.%s should be an array, but it's not.", path), "", "", "")
+		return
+	}
+	var (
+		n           = data.Len()
+		direction   = ">="
+		assertion   = BeGreaterThanOrEqualTo
+		cur, prev   string
+		initialized bool
+	)
+	if isDescending {
+		direction = "<="
+		assertion = BeLessThanOrEqualTo
 	}
 
-	element := "data"
-	field := "completed"
-	isDescending := true
-	// element, elementOk := args[0].(string)
-	json, err := parseJSON(actual)
-	if err != nil {
-		return err.Error()
+	getFieldFrom := func(i int) string {
+		record := data.GetElement(i)
+		dataNode, ok := record.GetPathCheck(field)
+		if !ok {
+			fail = FormatFailure(fmt.Sprintf("Couldn't find field %s in item %d of sorted array", field, i), record.String(), "", "")
+		}
+		data, ok := dataNode.Data().(string)
+		if !ok {
+			short := fmt.Sprintf("Expected items[%d].%s to be a string, but it was a %T: %#v", i, field, dataNode.Data(), dataNode.Data())
+			long := fmt.Sprintf("item[%d] = %s", i, record)
+			fail = FormatFailure(short, long, "", "")
+		}
+		return data
 	}
 
-	initialized := false
-	prev := ""
-	for i, item := range json.Search(element).Children() {
-		if !initialized {
-			prev = item.Search(field).Data().(string)
-		}
-		cur := item.Search(field).Data().(string)
-		if isDescending {
-			fail = BeLessThanOrEqualTo(cur, prev)
-		} else {
-			fail = BeGreaterThanOrEqualTo(cur, prev)
-		}
+	for i := 0; i < n; i++ {
+
+		cur = getFieldFrom(i)
 		if fail != "" {
-			direction := ">="
-			if isDescending {
-				direction = "<="
-			}
-			return fmt.Sprintf("Expecting a sorted list, But item[%d]=%s is not %s than item[%d]=%s [%s]", i, cur, direction, i-1, prev, fail)
+			return
+		}
+		if !initialized {
+			initialized = true
+			prev = cur
+			continue
+		}
+		fail = assertion(cur, prev)
+		if fail != "" {
+			msg := fmt.Sprintf("Sorted array a[%d]=%s is not %s item a[%d]=%s", i, cur, direction, i-1, prev)
+			long := data.String()
+			fail = FormatFailure(msg, long, "", "")
 		}
 		prev = cur
 	}
