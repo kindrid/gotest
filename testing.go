@@ -77,6 +77,7 @@ func Vocal(minLevel int) bool {
 
 // Sprintv formats a string if Verbosity >= minLevel, otherwise returns ""
 func Sprintv(minLevel int, format string, args ...interface{}) string {
+
 	if !Vocal(minLevel) {
 		return ""
 	}
@@ -113,8 +114,8 @@ func Assert(t T, actual interface{}, assertion should.Assertion, expected ...int
 			msg += fmt.Sprintf("\nTest Failure Stack Trace: %s\n\n", debug.FormattedCallStack(StackLevel, StackDepth))
 		}
 		name := t.Name()
-		msg += Sprintv(Short, "Failed %s: %s", name, terseMsg)
-		msg += Sprintv(Long, "\n%s\n", extraMsg+"\nCalls:"+debug.ShortStack(3, 10))
+		msg += Sprintv(Short, "FAILED %s: %s", name, terseMsg)
+		msg += Sprintv(Long, "\nEXTRA INFO: %s\n", extraMsg+"\nCalls:"+debug.ShortStack(3, 10))
 		msg += Inspectv(Actuals, "\nLEFT-SIDE VALUE (usually actual value-under-test)", actual)
 		msg += Inspectv(Expecteds, "\nRIGHT-SIDE VALUES", expected)
 		if detailsMsg != "" {

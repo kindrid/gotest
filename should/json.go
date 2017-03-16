@@ -363,8 +363,8 @@ func BeSortedByField(actual interface{}, args ...interface{}) (fail string) {
 		}
 		fail = assertion(cur, prev)
 		if fail != "" {
-			msg := fmt.Sprintf("Sorted array a[%d]=%s is not %s item a[%d]=%s", i, cur, direction, i-1, prev)
-			long := data.String()
+			msg := fmt.Sprintf("Sorted array a[%d].%s=%s is not %s item a[%d],%s=%s", i, field, cur, direction, i-1, field, prev)
+			long := fmt.Sprintf("a[%d] = %s\nWHICH SHOULD HAVE .%s %s...\na[%d] = %s", i, data.GetElement(i), field, direction, i-1, data.GetElement(i-1))
 			fail = FormatFailure(msg, long, "", "")
 		}
 		prev = cur
