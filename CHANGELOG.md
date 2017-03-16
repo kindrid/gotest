@@ -17,7 +17,7 @@ Each version should:
 ### Added
 - Verbosity control: `--gotest-verbosity`
 - Stack trace control: `--gotest-stack`
-- Added JSON assertion `should.BeSortedBy`
+- Added JSON assertion `should.BeSortedByField`
 ### Changed
 - `should.MatchHTTPStatusCode` is less verbose
 - Dependency updates

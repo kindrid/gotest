@@ -344,7 +344,7 @@ func BeSortedByField(actual interface{}, args ...interface{}) (fail string) {
 		data, ok := dataNode.Data().(string)
 		if !ok {
 			short := fmt.Sprintf("Expected items[%d].%s to be a string, but it was a %T: %#v", i, field, dataNode.Data(), dataNode.Data())
-			long := fmt.Sprintf("item[%d] = %s", i, record)
+			long := fmt.Sprintf("items[%d] = %s\nraw(items[%d].%s)=%s", i, record, i, field, dataNode)
 			fail = FormatFailure(short, long, "", "")
 		}
 		return data

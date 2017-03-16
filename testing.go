@@ -84,7 +84,6 @@ func Sprintv(minLevel int, format string, args ...interface{}) string {
 }
 
 // Inspectv returns a detailed introspection of objects if Verbosity >= minLevel.
-// We're considering using spew or a similar library to give verbosity.
 func Inspectv(minLevel int, label string, inspected ...interface{}) (result string) {
 	if !Vocal(minLevel) {
 		return
@@ -92,10 +91,14 @@ func Inspectv(minLevel int, label string, inspected ...interface{}) (result stri
 	if label != "" {
 		result = fmt.Sprintf("%s: \n", label)
 	}
-	// for _, x := range inspected {
-	// result += fmt.Sprintf("%#v\n", x)
-	// }
-	result += spew.Sdump(inspected...)
+	for _, x := range inspected {
+		explorer, err := should.ParseJSON(x)
+		if err == nil {
+			result += explorer.String() + "\n"
+		} else {
+			result += spew.Sdump(x)
+		}
+	}
 	return
 }
 
@@ -112,10 +115,10 @@ func Assert(t T, actual interface{}, assertion should.Assertion, expected ...int
 		name := t.Name()
 		msg += Sprintv(Short, "Failed %s: %s", name, terseMsg)
 		msg += Sprintv(Long, "\n%s\n", extraMsg+"\nCalls:"+debug.ShortStack(3, 10))
-		msg += Inspectv(Actuals, "\nACTUAL VALUE", actual)
-		msg += Inspectv(Expecteds, "\nDEXPECTED VALUE", expected)
+		msg += Inspectv(Actuals, "\nLEFT-SIDE VALUE (usually actual value-under-test)", actual)
+		msg += Inspectv(Expecteds, "\nRIGHT-SIDE VALUES", expected)
 		if detailsMsg != "" {
-			msg += Sprintv(Debug, "\nFAILURE DETAILS: %s\n", detailsMsg)
+			msg += Sprintv(Debug, "\nDETAILS: %s\n", detailsMsg)
 		}
 		if metaMsg != "" {
 			msg += Sprintv(Insane, "\nINTERNALS (FOR DEBUGGING ASSERTIONS): %s\n", metaMsg)
