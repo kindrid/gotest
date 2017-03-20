@@ -18,12 +18,15 @@ Each version should:
 - Verbosity control: `--gotest-verbosity`
 - Stack trace control: `--gotest-stack`
 - Added JSON assertion `should.BeSortedByField`
+- Added JSON assertion `should.CountAtLease`
 ### Changed
 - `should.MatchHTTPStatusCode` is less verbose
 - Dependency updates
 - Removed `vendor/`
 - Removed all traces of `goconvey`
 - Documentation improvements
+- Verbosity of Debug (4) or Insane (5) shows information even for successes.
+
 
 ## [0.9.4] 2017-02-21
 ### Added

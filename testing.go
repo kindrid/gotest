@@ -29,7 +29,7 @@ const (
 	Long                 // Add the next level of failure string (up to \n\n)
 	Actuals              // Add the entire failure string and a (possibly shortened) representation of the actual value
 	Expecteds            // Add  (possibly shortened) representation(s) of  expected values.
-	Debug                // Adds granular information to diagnose the failure and ensures that all representations are unabridged. This level may inject flags into the tested item to make it more verbose.
+	Debug                // Adds granular information to successes as well as failures. This level may inject flags into the tested item to make it more verbose.
 	Insane               // Adds information to test meta concerns, such as logic within assertions.
 )
 
@@ -66,7 +66,7 @@ func RegisterFlags(prefix string) {
 	}
 	flag.IntVar(&StackDepth, depthFlagName, 0, "stack trace depth on failure")
 	flag.IntVar(&StackLevel, prefix+"level", 0, "number of stack frames to ignore before printing stack-depth frames")
-	flag.IntVar(&Verbosity, prefix+"verbosity", 0, "verbosity level: -1=silent, 0=short, 1=long, 2=show-actuals, \n\t3=show-expecteds, 4=show-debugging-details, 5=show-test-internals")
+	flag.IntVar(&Verbosity, prefix+"verbosity", 0, "verbosity level: -1=silent, 0=short, 1=long, 2=show-actuals, \n\t3=show-expecteds, 4=debug-successes, 5=show-test-internals")
 	flag.BoolVar(&FailFast, prefix+"failfast", false, "cause tests to exit with errorcode=1 after the first assertion failure")
 }
 
@@ -107,7 +107,7 @@ func Inspectv(minLevel int, label string, inspected ...interface{}) (result stri
 func Assert(t T, actual interface{}, assertion should.Assertion, expected ...interface{}) {
 
 	fail := assertion(actual, expected...)
-	if fail != "" {
+	if fail != "" || Verbosity >= Debug {
 		terseMsg, extraMsg, detailsMsg, metaMsg := should.ParseFailure(fail)
 		msg := ""
 		if StackDepth > 0 {

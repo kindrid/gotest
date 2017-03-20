@@ -372,3 +372,67 @@ func BeSortedByField(actual interface{}, args ...interface{}) (fail string) {
 
 	return
 }
+
+func argsForCountTests(
+	actual interface{}, args ...interface{}) (
+	parsedActual StructureExplorer,
+	elementPath string,
+	count int,
+	fail string,
+) {
+	var (
+		err error
+		ok  bool
+	)
+
+	usage := `CountAtLeast expects parseable JSON and at  two right-side args. The
+	JSON is in the left-side arg. It extracts an item arg[0] from the json and
+	checks that it is an array field with at least arg[1] items.`
+
+	if actual == nil {
+		fail = FormatFailure(usage, "", "", "")
+		return
+	}
+	// grab the JSON in actual
+	if parsedActual, err = ParseJSON(actual); err != nil {
+		fail = FormatFailure("Error Parsing JSON", fmt.Sprintf("%s\n%s", usage, err.Error()), "", "")
+		return
+	}
+	// grab the elementPath
+	if len(args) < 2 {
+		fail = FormatFailure(fmt.Sprintf("Expecting  2 right-side arguments, got %d", len(args)), usage, "", "")
+	}
+	if elementPath, ok = args[0].(string); !ok {
+		msg := fmt.Sprintf("Expected elementPath to be a string but got %#v instead", args[0])
+		fail = FormatFailure(msg, usage, "", "")
+		return
+	}
+	if count, ok = args[1].(int); !ok {
+		msg := fmt.Sprintf("Expected count to be an integer but got %#v instead", args[1])
+		fail = FormatFailure(msg, usage, "", "")
+		return
+	}
+	return
+}
+
+// CountAtLeast passes if actual parses to a JSON and has an element named
+// args[0] which is an array with >= arg[1] items
+func CountAtLeast(actual interface{}, args ...interface{}) (fail string) {
+	json, path, count, fail := argsForCountTests(actual, args...)
+	if fail != "" {
+		return
+	}
+	data, ok := json.GetPathCheck(path)
+	if !(ok && data.IsArray()) {
+		fail = FormatFailure(fmt.Sprintf("Actual.%s should be an array, but it's not.", path), "", "", "")
+		return
+	}
+	if data.Len() < count {
+		fail = FormatFailure(
+			fmt.Sprintf("Expected at least %d items in Actual.%s, but found %d.",
+				count, path, data.Len()),
+			data.String(), "", "",
+		)
+	}
+	return
+}
