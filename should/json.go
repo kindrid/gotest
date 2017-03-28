@@ -81,7 +81,7 @@ func HaveFields(actual interface{}, expected ...interface{}) (fail string) {
 //   AllowFields(json, "default", reflect.Interface)  // assert that there is a field `default` with any type of value.
 //
 func AllowFields(actual interface{}, expected ...interface{}) (fail string) {
-	usage := "HaveFields expects parseable JSON to be compared to fieldPath string, fieldKind reflect.Kind pairs."
+	usage := "AllowFields expects parseable JSON to be compared to fieldPath string, fieldKind reflect.Kind pairs."
 	if actual == nil {
 		return usage
 	}
