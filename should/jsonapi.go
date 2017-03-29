@@ -173,3 +173,55 @@ func BeValidRecordArray(json *gabs.Container) (fail string) {
 // func BeValidIncluded(json *gabs.Container) (fail string) {
 // 	return
 // }
+
+func BeJsonapiError(actual interface{}, expected ...interface{}) (fail string) {
+	usage := "BeJsonapiError expects a single string argument and passes if that argument parses as a JSON:API error response."
+	if actual == nil {
+		return usage
+	}
+	json, err := ParseJSON(actual)
+	if err != nil {
+		return err.Error()
+	}
+	fail = FailFirst(
+		HaveFields(json, "errors", reflect.Slice),
+		AllowFields(json, "errors", reflect.Slice, "meta", reflect.Map,
+			"jsonapi", reflect.Map, "links", reflect.Map, "included", reflect.Slice))
+	if fail != "" {
+		return
+	}
+	errors := json.GetPath("errors")
+	for i := 0; i < errors.Len(); i++ {
+		e := errors.GetElement(i)
+		fail = testJsonapiErrorObject(e)
+		if fail != "" {
+			return
+		}
+	}
+	return
+}
+
+func testJsonapiErrorObject(e StructureExplorer) (fail string) {
+	if fail = AllowFields(e, "id", reflect.String, "links", reflect.Map,
+		"status", reflect.String, "code", reflect.String,
+		"title", reflect.String, "detail", reflect.String,
+		"source", reflect.Map, "meta", reflect.Map,
+	); fail != "" {
+		return
+	}
+	// .links is supposed to have .about
+	if links, ok := e.GetPathCheck("links"); ok {
+		if fail = HaveFields(links, "about", reflect.String); fail != "" {
+			return
+		}
+	}
+	// .source can only have .path and .parameter
+	if source, ok := e.GetPathCheck("source"); ok {
+		if fail = AllowFields(source, "paramater", reflect.String,
+			"path", reflect.String,
+		); fail != "" {
+			return
+		}
+	}
+	return
+}

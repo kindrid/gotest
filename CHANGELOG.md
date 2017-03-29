@@ -3,9 +3,7 @@
 ## Conventions
 http://keepachangelog.com/en/0.3.0/
 
-Each version should:
-- **List**: its release date in the above format.
-- **Group**: changes to describe their impact on the project, as follows:
+Each version should group changes to describe their impact on the project, as follows:
 - **Added**: for new features.
 - **Changed**: for changes in existing functionality.
 - **Deprecated**: for once-stable features removed in upcoming releases.
@@ -17,8 +15,10 @@ Each version should:
 ### Added
 - Verbosity control: `--gotest-verbosity`
 - Stack trace control: `--gotest-stack`
-- Added JSON assertion `should.BeSortedByField`
-- Added JSON assertion `should.CountAtLease`
+- Added JSON assertions:
+  - `should.BeSortedByField`
+  - `should.CountAtLease`
+- Added JSON:API assertion: `BeJsonapiError`
 ### Changed
 - `should.MatchHTTPStatusCode` is less verbose
 - Dependency updates
