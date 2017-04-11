@@ -11,7 +11,7 @@ Each version should group changes to describe their impact on the project, as fo
 - **Fixed**: for any bug fixes.
 - **Security**: to invite users to upgrade in case of vulnerabilities.
 
-## [0.9.?] unreleased
+## [1.0.0] 2017-04-11
 ### Added
 - Verbosity control: `--gotest-verbosity`
 - Stack trace control: `--gotest-stack`
@@ -20,6 +20,7 @@ Each version should group changes to describe their impact on the project, as fo
   - `should.CountAtLease`
 - Added JSON:API assertion: `BeJsonapiError`
 ### Changed
+- Bumping to version 1.x per semver.org's advice.
 - `should.MatchHTTPStatusCode` is less verbose
 - Dependency updates
 - Removed `vendor/`
