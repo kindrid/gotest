@@ -1,17 +1,5 @@
 /*Package gotest provides rich assertions for use within and beyond Go's `testing` package.
 
-Overview
-
-GoTest plays well with "vernacular" Go `testing` tests, providing a rich set of
-assertions to test HTTP Responses, JSON and JSON:API data, general equality,
-numeric comparison, collections, strings, panics, types, and time.
-
-Most of these rich assertions are provided by SmartyStreet's excellent assertion
-library (https://github.com/smartystreets/assertions) which builds off Aaron
-Jacobs' Oglematchers (https://github.com/jacobsa/oglematchers).
-
-In addition, any SmartyTreets-style assertion can be used as is (see https://github.com/smartystreets/goconvey/wiki/Custom-Assertions).
-
 Quickstart
 
 Grab the package and import it:
@@ -23,10 +11,26 @@ Grab the package and import it:
 Code normal `testing`-style tests, but use `gotest.Assert` and assertions found
 in `should` like this:
 
-  gotest.Assert(t, json, ShouldHaveFields,
+  gotest.Assert(t, actualJson, should.HaveFields,
     "name", reflect.String,
     "children", reflect.Map,
     "hobbies", reflect.Slice)
+
+Assertions are just funcions that accept interfaces and return a non-empty string if there's an error. Look at `gotest.should.Assertion` for the details. Look at `should/doc.go` and `should/assertion.go` ofr more details.
+
+Gotest adds some command-line options to your tests. You can see them via `go test . -args -help`. Note that gotest has its own verbosity flag which controls different aspects than `-test.v`.
+
+Overview
+
+GoTest plays well with "vernacular" Go `testing` tests, providing a rich set of
+assertions to test HTTP Responses, JSON and JSON:API data, general equality,
+numeric comparison, collections, strings, panics, types, and time.
+
+Most of these rich assertions are provided by SmartyStreet's excellent assertion
+library (https://github.com/smartystreets/assertions) which builds off Aaron
+Jacobs' Oglematchers (https://github.com/jacobsa/oglematchers).
+
+In addition, any SmartyTreets-style assertion can be used as is (see https://github.com/smartystreets/goconvey/wiki/Custom-Assertions).
 
 Why
 
@@ -55,10 +59,6 @@ custom-assertion pattern, but GoConvey's seemed simpler and more useful. We took
 a sideways glance at GUnit (`github.com/smartystreets/gunit`) and Labix's
 GoCheck (`gopkg.in/check.v1 `). Very cool packages, but we wanted to stay closer
 to `testing` with its new versatility.
-
-
-
-
 
 */
 package gotest

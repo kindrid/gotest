@@ -1,7 +1,6 @@
 package should
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/kindrid/gotest/debug"
@@ -15,7 +14,7 @@ func Passes(t *testing.T, topic string, a Assertion, actual interface{}, expecte
 		return
 	}
 	t.Errorf("%s Expected %#v to pass but got '%s'", topic, a, fail)
-	t.Errorf(strings.Join(debug.CallStack(5), ", "))
+	t.Errorf(debug.FormattedCallStack(2, 3))
 	// if fail != "" {
 	// 	t.Errorf("Expected %v to pass. Instead got '%s'.", a, fail)
 	// } else if pass == "" {

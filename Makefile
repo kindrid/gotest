@@ -1,14 +1,16 @@
-VERSION = 0.9.4
+VERSION = $(shell sed -n 's/^ *Version *= *"\(.*\)"/\1/p' < version.go)
 COMMIT = ${shell git log --pretty='format:%h' -n 1}
 BRANCH = ${shell git rev-parse --abbrev-ref HEAD}
+# THIS WON'T WORK WITH A LIBRARY BUILD!
+BUILD_VARS = -X ${INJECT_VARS_SITE}.Version=${VERSION} -X ${INJECT_VARS_SITE}.Commit=${COMMIT}
 
-
-init:
-	go get -t -v ./...
+glide: ${GOPATH}/bin/glide
+${GOPATH}/bin/glide:
+	curl https://glide.sh/get | sh
 
 test:
 	go clean
-	go test ./ ./should
+	go test ./ ./should ./debug
 
 cover:
 	go clean
@@ -20,15 +22,16 @@ test-watch:
 # Make sure there's no debug code etc.
 code-quality:
 	@echo "Checking for debugging figments"
-	@! grep --exclude Makefile --exclude-dir vendor -nIR 'y0ssar1an/q' *
-	@! grep --exclude Makefile --exclude-dir vendor -nIR 'DEBUG' *
+	@! grep --exclude Makefile --exclude glide.yaml --exclude-dir vendor -nIR 'y0ssar1an/q' *
+	@! egrep --exclude Makefile --exclude-dir vendor -nIR '// *DEBUG' *
 
 # package location for compiled-in values
-INJECT_VARS_SITE = github.com/kindrid/gotest/gotest
+INJECT_VARS_SITE = gotest
 
-# create executables for this plaform
-build: init
-	go build -v -ldflags "-X ${INJECT_VARS_SITE}.Version=${VERSION} -X ${INJECT_VARS_SITE}.Commit=${COMMIT}"  ./...
+# create libs
+build: glide
+	glide install
+	go build -v -ldflags "${BUILD_VARS}"  $(glide novendor)
 
 # create any distribution files
 dist: build

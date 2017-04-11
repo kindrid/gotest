@@ -29,13 +29,13 @@ func parseJSON(actual interface{}) (*gabs.Container, error) {
 	case string:
 		container, err := gabs.ParseJSON([]byte(v))
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing JSON: %s\nBody: %s", err, v)
+			return nil, fmt.Errorf(FormatFailure("Error parsing JSON.", err.Error(), "", ""))
 		}
 		return container, err
 	case *string:
 		container, err := gabs.ParseJSON([]byte(*v))
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing JSON: %s\nBody: %s", err, *v)
+			return nil, fmt.Errorf(FormatFailure("Error parsing JSON.", err.Error(), "", ""))
 		}
 		return container, err
 	case []byte:
@@ -45,7 +45,13 @@ func parseJSON(actual interface{}) (*gabs.Container, error) {
 	case *GabsExplorer: // until we convert the other tests over to use StructureExplorers
 		return (*gabs.Container)(v), nil
 	default:
-		return nil, fmt.Errorf("Expecting a JSON string or a structure representing one, not a %T.", actual)
+		return nil, fmt.Errorf(
+			FormatFailure(
+				"JSON parser given a value it can't parse.",
+				fmt.Sprintf("Expecting a JSON string or a structure representing one, not a %T.", actual),
+				"", "",
+			),
+		)
 	}
 }
 
@@ -75,7 +81,7 @@ func HaveFields(actual interface{}, expected ...interface{}) (fail string) {
 //   AllowFields(json, "default", reflect.Interface)  // assert that there is a field `default` with any type of value.
 //
 func AllowFields(actual interface{}, expected ...interface{}) (fail string) {
-	usage := "HaveFields expects parseable JSON to be compared to fieldPath string, fieldKind reflect.Kind pairs."
+	usage := "AllowFields expects parseable JSON to be compared to fieldPath string, fieldKind reflect.Kind pairs."
 	if actual == nil {
 		return usage
 	}
@@ -83,7 +89,11 @@ func AllowFields(actual interface{}, expected ...interface{}) (fail string) {
 	if err != nil {
 		return err.Error()
 	}
-	return haveFields(json, false, expected...)
+	fail = haveFields(json, false, expected...)
+	if fail != "" {
+		fail = FormatFailure("JSON field(s) do not match expected types.", fail, "", "")
+	}
+	return
 }
 
 // haveFields checks to see if json contains fields and types matching expected.
@@ -115,6 +125,7 @@ func haveFields(json *gabs.Container, required bool, expected ...interface{}) (f
 			fail += fmt.Sprintf("Expecting a '%s' value of type %s, got %s.\nJSON: %s", fieldPath, expectedKind, actualKind, json)
 		}
 	}
+
 	return
 }
 
@@ -134,8 +145,15 @@ func HaveOnlyFields(actual interface{}, allowed ...interface{}) (fail string) {
 		return err.Error()
 	}
 
-	fail += haveFields(json, false, allowed...)
-	fail += haveOnlyKeys(json, allowed...)
+	fail = haveOnlyKeys(json, allowed...)
+	if fail != "" {
+		fail = FormatFailure("JSON has unexpected fields.", fail, "", "")
+		return
+	}
+	fail = haveFields(json, false, allowed...)
+	if fail != "" {
+		fail = FormatFailure("JSON fields do not match expected type.", fail, "", "")
+	}
 	return
 }
 
@@ -198,7 +216,11 @@ func HaveOnlyCamelcaseKeys(actual interface{}, ignored ...interface{}) (fail str
 		ignoreMap[igS] = true
 	}
 
-	return checkCamelcaseKeys(json, ignoreMap)
+	fail = checkCamelcaseKeys(json, ignoreMap)
+	if fail != "" {
+		fail = FormatFailure("JSON field names is not camelCase.", fail, "", "")
+	}
+	return
 }
 
 var camelCaseRegexp = regexp.MustCompile(`^[a-z][a-zA-Z0-9]*$`)
@@ -240,4 +262,177 @@ func checkCamelcaseKeys(j *gabs.Container, ignores map[string]bool) (fail string
 
 	// otherwise this is an atomic object. No check necessary.
 	return ""
+}
+
+func argsForBesortedByField(
+	actual interface{}, args ...interface{}) (
+	parsedActual StructureExplorer,
+	elementPath, fieldName string, isDescending bool,
+	fail string,
+) {
+	var (
+		err error
+		ok  bool
+	)
+	usage := "BeSortedByField expects parseable JSON and at least two right-side args. \nThe JSON is in the left-side arg. It extracts an item arg[0] from the json and checks that it is sorted on field arg[1], ascending by default, descending if arg[2] == true."
+	if actual == nil {
+		fail = FormatFailure(usage, "", "", "")
+		return
+	}
+	// grab the JSON in actual
+	if parsedActual, err = ParseJSON(actual); err != nil {
+		fail = FormatFailure("Error Parsing JSON", fmt.Sprintf("%s\n%s", usage, err.Error()), "", "")
+		return
+	}
+	// grab the elementPath and field Name
+	if len(args) < 2 {
+		fail = FormatFailure(fmt.Sprintf("Expecting at least 2 right-side arguments, got %d", len(args)), usage, "", "")
+	}
+	if elementPath, ok = args[0].(string); !ok {
+		msg := fmt.Sprintf("Expected elementPath to be a string but got %#v instead", args[0])
+		fail = FormatFailure(msg, usage, "", "")
+		return
+	}
+	if fieldName, ok = args[1].(string); !ok {
+		msg := fmt.Sprintf("Expected fieldName to be a string but got %#v instead", args[1])
+		fail = FormatFailure(msg, usage, "", "")
+		return
+	}
+	// grab optional direction param
+	if len(args) >= 3 {
+		if isDescending, ok = args[2].(bool); !ok {
+			msg := fmt.Sprintf("Expected isDecending, if present, to be a bool but got %#v instead", args[2])
+			fail = FormatFailure(msg, usage, "", "")
+			return
+		}
+	}
+	return
+}
+
+// BeSortedByField passes if actual parses to JSON and has an element named
+// args[0] in which every element has a field named arg[1] which is sorted,
+// ascending by default, if arg[2] is true, the sort is descending.
+func BeSortedByField(actual interface{}, args ...interface{}) (fail string) {
+	json, path, field, isDescending, fail := argsForBesortedByField(actual, args...)
+	if fail != "" {
+		return
+	}
+	_, _, _, _ = json, path, field, isDescending
+	data, ok := json.GetPathCheck(path)
+	if !(ok && data.IsArray()) {
+		fail = FormatFailure(fmt.Sprintf("Actual.%s should be an array, but it's not.", path), "", "", "")
+		return
+	}
+	var (
+		n           = data.Len()
+		direction   = ">="
+		assertion   = BeGreaterThanOrEqualTo
+		cur, prev   string
+		initialized bool
+	)
+	if isDescending {
+		direction = "<="
+		assertion = BeLessThanOrEqualTo
+	}
+
+	getFieldFrom := func(i int) string {
+		record := data.GetElement(i)
+		dataNode, ok := record.GetPathCheck(field)
+		if !ok {
+			fail = FormatFailure(fmt.Sprintf("Couldn't find field %s in item %d of sorted array", field, i), record.String(), "", "")
+		}
+		data, ok := dataNode.Data().(string)
+		if !ok {
+			short := fmt.Sprintf("Expected items[%d].%s to be a string, but it was a %T: %#v", i, field, dataNode.Data(), dataNode.Data())
+			long := fmt.Sprintf("items[%d] = %s\nraw(items[%d].%s)=%s", i, record, i, field, dataNode)
+			fail = FormatFailure(short, long, "", "")
+		}
+		return data
+	}
+
+	for i := 0; i < n; i++ {
+
+		cur = getFieldFrom(i)
+		if fail != "" {
+			return
+		}
+		if !initialized {
+			initialized = true
+			prev = cur
+			continue
+		}
+		fail = assertion(cur, prev)
+		if fail != "" {
+			msg := fmt.Sprintf("Sorted array a[%d].%s=%s is not %s item a[%d],%s=%s", i, field, cur, direction, i-1, field, prev)
+			long := fmt.Sprintf("a[%d] = %s\nWHICH SHOULD HAVE .%s %s...\na[%d] = %s", i, data.GetElement(i), field, direction, i-1, data.GetElement(i-1))
+			fail = FormatFailure(msg, long, "", "")
+		}
+		prev = cur
+	}
+
+	return
+}
+
+func argsForCountTests(
+	actual interface{}, args ...interface{}) (
+	parsedActual StructureExplorer,
+	elementPath string,
+	count int,
+	fail string,
+) {
+	var (
+		err error
+		ok  bool
+	)
+
+	usage := `CountAtLeast expects parseable JSON and at  two right-side args. The
+	JSON is in the left-side arg. It extracts an item arg[0] from the json and
+	checks that it is an array field with at least arg[1] items.`
+
+	if actual == nil {
+		fail = FormatFailure(usage, "", "", "")
+		return
+	}
+	// grab the JSON in actual
+	if parsedActual, err = ParseJSON(actual); err != nil {
+		fail = FormatFailure("Error Parsing JSON", fmt.Sprintf("%s\n%s", usage, err.Error()), "", "")
+		return
+	}
+	// grab the elementPath
+	if len(args) < 2 {
+		fail = FormatFailure(fmt.Sprintf("Expecting  2 right-side arguments, got %d", len(args)), usage, "", "")
+	}
+	if elementPath, ok = args[0].(string); !ok {
+		msg := fmt.Sprintf("Expected elementPath to be a string but got %#v instead", args[0])
+		fail = FormatFailure(msg, usage, "", "")
+		return
+	}
+	if count, ok = args[1].(int); !ok {
+		msg := fmt.Sprintf("Expected count to be an integer but got %#v instead", args[1])
+		fail = FormatFailure(msg, usage, "", "")
+		return
+	}
+	return
+}
+
+// CountAtLeast passes if actual parses to a JSON and has an element named
+// args[0] which is an array with >= arg[1] items
+func CountAtLeast(actual interface{}, args ...interface{}) (fail string) {
+	json, path, count, fail := argsForCountTests(actual, args...)
+	if fail != "" {
+		return
+	}
+	data, ok := json.GetPathCheck(path)
+	if !(ok && data.IsArray()) {
+		fail = FormatFailure(fmt.Sprintf("Actual.%s should be an array, but it's not.", path), "", "", "")
+		return
+	}
+	if data.Len() < count {
+		fail = FormatFailure(
+			fmt.Sprintf("Expected at least %d items in Actual.%s, but found %d.",
+				count, path, data.Len()),
+			data.String(), "", "",
+		)
+	}
+	return
 }

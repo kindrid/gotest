@@ -3,9 +3,7 @@
 ## Conventions
 http://keepachangelog.com/en/0.3.0/
 
-Each version should:
-- **List**: its release date in the above format.
-- **Group**: changes to describe their impact on the project, as follows:
+Each version should group changes to describe their impact on the project, as follows:
 - **Added**: for new features.
 - **Changed**: for changes in existing functionality.
 - **Deprecated**: for once-stable features removed in upcoming releases.
@@ -13,13 +11,30 @@ Each version should:
 - **Fixed**: for any bug fixes.
 - **Security**: to invite users to upgrade in case of vulnerabilities.
 
+## [0.9.?] unreleased
+### Added
+- Verbosity control: `--gotest-verbosity`
+- Stack trace control: `--gotest-stack`
+- Added JSON assertions:
+  - `should.BeSortedByField`
+  - `should.CountAtLease`
+- Added JSON:API assertion: `BeJsonapiError`
+### Changed
+- `should.MatchHTTPStatusCode` is less verbose
+- Dependency updates
+- Removed `vendor/`
+- Removed all traces of `goconvey`
+- Documentation improvements
+- Verbosity of Debug (4) or Insane (5) shows information even for successes.
+
+
 ## [0.9.4] 2017-02-21
 ### Added
 - StructureExplorer.GetPathCheck() is like GetPath() but returns a second value, ok bool, to verify whether the value was found.
 - StructureExplorer.PathExists() returns true if a path points to a structure element with a non-nil value
 - GetVersion() and GetCommit() give info about the code version.
 ### Changed
-- Migrating some json checks to use the StructureExplorer interface instead of *gabs.Container. (Should probably make StructureExplorer its own subpackage.)
+- Migrating some json checks to use the `StructureExplorer` interface instead of `*gabs.Container`. (Should probably make `StructureExplorer` its own subpackage.)
 
 ## [0.9.3] 2017-02-16
 ### Added

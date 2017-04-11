@@ -11,6 +11,9 @@ import (
 // StructureExplorer considers generalizing *gabs.Container with the methods
 // needed to test a complex data structure's content and schema.
 type StructureExplorer interface {
+	// String prettyprints the structure.
+	String() string
+
 	// Data gets the datum stored within a StructureExplorer
 	Data() interface{}
 
@@ -105,7 +108,7 @@ func (ge *GabsExplorer) GetPathCheck(path string) (se StructureExplorer, ok bool
 // element isn't found, return's .Data() == nil
 func (ge *GabsExplorer) PathExists(path string) bool {
 	se := ge.GetPath(path)
-	return se.Data != nil
+	return se.Data() != nil
 }
 
 // GetPath returns the the element from an object structure by name. If the
@@ -114,4 +117,10 @@ func (ge *GabsExplorer) GetPath(path string) StructureExplorer {
 	g := (*gabs.Container)(ge)
 	result := g.Path(path)
 	return (*GabsExplorer)(result)
+}
+
+// String converts the explorer to a pretty string
+func (ge *GabsExplorer) String() string {
+	g := (*gabs.Container)(ge)
+	return g.StringIndent("", "  ")
 }
