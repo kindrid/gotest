@@ -1,5 +1,5 @@
 package gotest
 
 var (
-	Version = "0.9.5"
+	Version = "1.0.0"
 )
