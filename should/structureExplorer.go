@@ -8,6 +8,8 @@ import (
 	"github.com/Jeffail/gabs"
 )
 
+type StructureParser func(rawBody string) (StructureExplorer, error)
+
 // StructureExplorer considers generalizing *gabs.Container with the methods
 // needed to test a complex data structure's content and schema.
 type StructureExplorer interface {
