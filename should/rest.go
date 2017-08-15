@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"testing"
 
 	"github.com/kindrid/gotest/rest"
+	"github.com/y0ssar1an/q"
 )
 
 // RESTHarness provides an engine that can construct requests, run them, and
@@ -19,7 +21,7 @@ type RESTHarness struct {
 // RESTExchange holds one HTTP request, expected response, and actual response
 type RESTExchange struct {
 	Request  *http.Request   // The request
-	Expected *BodiedResponse // The response we should have got
+	Expected *BodiedResponse // The response we have got
 	Actual   *BodiedResponse // The response we actually got
 	Err      error           // any error running the request
 }
@@ -36,17 +38,21 @@ type BodiedResponse struct {
 
 func ReadResponseBody(rsp *http.Response, parser StructureParser) (result *BodiedResponse, err error) {
 	result = &BodiedResponse{Response: rsp}
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(rsp.Body)
-	result.Raw = buf.String()
-	result.Parsed, err = parser(result.Raw)
+	if rsp.Body != nil {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(rsp.Body)
+		result.Raw = buf.String()
+	}
+	if result.Raw != "" {
+		result.Parsed, err = parser(result.Raw)
+	}
 	return
 }
 
 // RunRequest executes an HTTP request and returns the expected and actual response in a
 // *RESTExchange. For the format of params, see rest.Describer's documentation, currently:
 //
-// Params is a list of strings, [name1, value1, name2, value2, ...]. Keys should have one
+// Params is a list of strings, [name1, value1, name2, value2, ...]. Keys have one
 // of these prefixes:
 //
 // 	  ":" - indicates an html header as a string
@@ -82,5 +88,34 @@ func (har *RESTHarness) RunRequest(requestID string, params []string, body strin
 		return
 	}
 
+	return
+}
+
+// TestRequest works like RunRequest but makes some basic assertions about the return.
+func (har *RESTHarness) TestRequest(t *testing.T, requestID string, params []string, body string) (result *RESTExchange) {
+	result = har.RunRequest(requestID, params, body)
+	q.Q(result)
+
+	fail := ""
+	if result.Err != nil {
+		fail = result.Err.Error()
+	}
+	if fail == "" && (result.Expected == nil || result.Expected.Response == nil) {
+		fail = "No expected response supplied for this path"
+	}
+	if fail == "" && (result.Actual == nil || result.Actual.Response == nil) {
+		fail = "No actual response supplied for this path"
+	}
+	if fail == "" {
+		fail = MatchHTTPStatusCode(result.Actual.Response, result.Expected.Response.StatusCode)
+	}
+
+	// q.Q(result.Expected.Response)
+
+	if fail != "" {
+		t.Error(fail)
+	}
+
+	// could check JSON:API content type
 	return
 }
