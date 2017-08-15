@@ -26,6 +26,12 @@ type Describer interface {
 	Types() (typeIDs []string)
 
 	// Get request applies any params to path and query, returning a request and the expected response.
-	GetRequest(requestID string, params map[string]string, body *string) (req *http.Request, expected *http.Response, err error)
+	// The params is a list of strings, [name1, value1, name2, value2, ...]. Keys should have one
+	// of these prefixes:
+	//
+	// 	  ":" - indicates an html header as a string
+	//    "&" - indicates a URL param as a string
+	//    "=" - treated as a raw string in path and body templating, ADD QUOTES if you want quotes.
+	GetRequest(requestID string, params []string, body *string) (req *http.Request, expected *http.Response, err error)
 	GetSchema(typeID string) *describers.Resource
 }

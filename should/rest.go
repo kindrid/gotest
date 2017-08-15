@@ -28,8 +28,8 @@ func ReadResponseBody(rsp *http.Response, parser StructureParser) (result *Bodie
 	return
 }
 
-// Exchange holds one HTTP request, expected response, and actual response
-type Exchange struct {
+// RESTExchange holds one HTTP request, expected response, and actual response
+type RESTExchange struct {
 	Request  *http.Request   // The request
 	Expected *BodiedResponse // The response we should have got
 	Actual   *BodiedResponse // The response we actually got
@@ -44,8 +44,16 @@ type RESTHarness struct {
 	Parser    StructureParser
 }
 
-// RunRequest executes an HTTP request and returns the expected and actual response in an *Exchange
-func (har *RESTHarness) RunRequest(requestID string, params map[string]string, body *string) (result *Exchange) {
+// RunRequest executes an HTTP request and returns the expected and actual response in a
+// *RESTExchange. For the format of params, see rest.Describer's documentation, currently:
+//
+// Params is a list of strings, [name1, value1, name2, value2, ...]. Keys should have one
+// of these prefixes:
+//
+// 	  ":" - indicates an html header as a string
+//    "&" - indicates a URL param as a string
+//    "=" - treated as a raw string in path and body templating, ADD QUOTES if you want quotes.
+func (har *RESTHarness) RunRequest(requestID string, params []string, body *string) (result *RESTExchange) {
 	var expected, actual *http.Response
 	// Grab information from the Describer (API specification)
 	result.Request, expected, result.Err = har.API.GetRequest(requestID, params, body)
