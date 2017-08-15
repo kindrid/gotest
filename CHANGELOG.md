@@ -11,6 +11,11 @@ Each version should group changes to describe their impact on the project, as fo
 - **Fixed**: for any bug fixes.
 - **Security**: to invite users to upgrade in case of vulnerabilities.
 
+## [1.1.0] 2017-08-15
+### Added
+- RESTHarness for testing RESTful specs
+- Swagger support for RESTHarness
+
 ## [1.0.0] 2017-04-11
 ### Added
 - Verbosity control: `--gotest-verbosity`

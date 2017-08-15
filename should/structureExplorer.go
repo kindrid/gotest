@@ -8,6 +8,18 @@ import (
 	"github.com/Jeffail/gabs"
 )
 
+type StructureParser func(rawBody string) (StructureExplorer, error)
+
+// ParseJSONExplorer implements StructureParser, parsing a JSON string into a
+// GabsExplorer
+func ParseJSONExplorer(body string) (StructureExplorer, error) {
+	gabs, err := gabs.ParseJSON([]byte(body))
+	if err != nil {
+		return nil, fmt.Errorf(FormatFailure("Error parsing JSON.", err.Error(), "", ""))
+	}
+	return (*GabsExplorer)(gabs), nil
+}
+
 // StructureExplorer considers generalizing *gabs.Container with the methods
 // needed to test a complex data structure's content and schema.
 type StructureExplorer interface {

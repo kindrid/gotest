@@ -128,9 +128,10 @@ func Assert(t T, actual interface{}, assertion should.Assertion, expected ...int
 			msg += "\nNOTE: skipping remaining assertions for this test because of --gotest-failfast."
 			t.Error(msg)
 			t.FailNow()
+		} else {
+			msg += "\n"
+			t.Error(msg)
 		}
-		msg += "\n"
-		t.Error(msg)
 	}
 }
 
