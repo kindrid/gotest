@@ -24,7 +24,7 @@ func (ss *SwaggerDescriber) Types() (result []string) {
 	return
 }
 
-func (ss *SwaggerDescriber) GetRequest(requestID string, params []string, body *string) (req *http.Request, expected *http.Response, err error) {
+func (ss *SwaggerDescriber) GetRequest(requestID string, params []string, body string) (req *http.Request, expected *http.Response, err error) {
 	return
 }
 

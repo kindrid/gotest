@@ -32,6 +32,7 @@ type Describer interface {
 	// 	  ":" - indicates an html header as a string
 	//    "&" - indicates a URL param as a string
 	//    "=" - treated as a raw string in path and body templating, ADD QUOTES if you want quotes.
-	GetRequest(requestID string, params []string, body *string) (req *http.Request, expected *http.Response, err error)
+	GetRequest(requestID string, params []string, body string) (
+		req *http.Request, expected *http.Response, err error)
 	GetSchema(typeID string) *describers.Resource
 }

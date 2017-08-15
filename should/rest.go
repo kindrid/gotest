@@ -2,12 +2,27 @@ package should
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 
 	"github.com/kindrid/gotest/rest"
 )
 
-// Provides a harness around REST API descriptions
+// RESTHarness provides an engine that can construct requests, run them, and
+// prepare the results for testing.
+type RESTHarness struct {
+	API       rest.Describer
+	Requester RequestMaker
+	Parser    StructureParser
+}
+
+// RESTExchange holds one HTTP request, expected response, and actual response
+type RESTExchange struct {
+	Request  *http.Request   // The request
+	Expected *BodiedResponse // The response we should have got
+	Actual   *BodiedResponse // The response we actually got
+	Err      error           // any error running the request
+}
 
 // RequesterMaker is a function that the tested code will use to simulate or actually perform a request.
 type RequestMaker func(*http.Request) (*http.Response, error)
@@ -28,22 +43,6 @@ func ReadResponseBody(rsp *http.Response, parser StructureParser) (result *Bodie
 	return
 }
 
-// RESTExchange holds one HTTP request, expected response, and actual response
-type RESTExchange struct {
-	Request  *http.Request   // The request
-	Expected *BodiedResponse // The response we should have got
-	Actual   *BodiedResponse // The response we actually got
-	Err      error           // any error running the request
-}
-
-// RESTHarness provides an engine that can construct requests, run them, and
-// prepare the results for testing.
-type RESTHarness struct {
-	API       rest.Describer
-	Requester RequestMaker
-	Parser    StructureParser
-}
-
 // RunRequest executes an HTTP request and returns the expected and actual response in a
 // *RESTExchange. For the format of params, see rest.Describer's documentation, currently:
 //
@@ -53,19 +52,27 @@ type RESTHarness struct {
 // 	  ":" - indicates an html header as a string
 //    "&" - indicates a URL param as a string
 //    "=" - treated as a raw string in path and body templating, ADD QUOTES if you want quotes.
-func (har *RESTHarness) RunRequest(requestID string, params []string, body *string) (result *RESTExchange) {
+func (har *RESTHarness) RunRequest(requestID string, params []string, body string) (result *RESTExchange) {
 	var expected, actual *http.Response
 	// Grab information from the Describer (API specification)
+	result = &RESTExchange{}
+	// q.Q("Before get Request", requestID, params, body)
 	result.Request, expected, result.Err = har.API.GetRequest(requestID, params, body)
 	if result.Err != nil {
 		return
 	}
-	result.Expected, result.Err = ReadResponseBody(expected, har.Parser)
-	if result.Err != nil {
-		return
+
+	if expected != nil {
+		result.Expected, result.Err = ReadResponseBody(expected, har.Parser)
+		if result.Err != nil {
+			return
+		}
 	}
 
-	// Run the request
+	// // Run the request
+	if har.Requester == nil {
+		result.Err = fmt.Errorf("a RESTHarness needs a request function to run a request")
+	}
 	actual, result.Err = har.Requester(result.Request)
 	if result.Err != nil {
 		return
