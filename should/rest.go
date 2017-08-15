@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/kindrid/gotest/rest"
-	"github.com/y0ssar1an/q"
 )
 
 // RESTHarness provides an engine that can construct requests, run them, and
@@ -62,7 +61,6 @@ func (har *RESTHarness) RunRequest(requestID string, params []string, body strin
 	var expected, actual *http.Response
 	// Grab information from the Describer (API specification)
 	result = &RESTExchange{}
-	// q.Q("Before get Request", requestID, params, body)
 	result.Request, expected, result.Err = har.API.GetRequest(requestID, params, body)
 	if result.Err != nil {
 		return
@@ -94,7 +92,6 @@ func (har *RESTHarness) RunRequest(requestID string, params []string, body strin
 // TestRequest works like RunRequest but makes some basic assertions about the return.
 func (har *RESTHarness) TestRequest(t *testing.T, requestID string, params []string, body string) (result *RESTExchange) {
 	result = har.RunRequest(requestID, params, body)
-	q.Q(result)
 
 	fail := ""
 	if result.Err != nil {
@@ -109,8 +106,6 @@ func (har *RESTHarness) TestRequest(t *testing.T, requestID string, params []str
 	if fail == "" {
 		fail = MatchHTTPStatusCode(result.Actual.Response, result.Expected.Response.StatusCode)
 	}
-
-	// q.Q(result.Expected.Response)
 
 	if fail != "" {
 		t.Error(fail)
