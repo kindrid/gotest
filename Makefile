@@ -10,7 +10,7 @@ ${GOPATH}/bin/glide:
 
 test:
 	go clean
-	go test ./ ./should ./debug ./rest
+	go test ./ ./should ./debug ./rest ./rest/describers
 
 cover:
 	go clean
