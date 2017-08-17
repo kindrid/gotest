@@ -1,9 +1,8 @@
 package describers
 
 import (
+	"reflect"
 	"testing"
-
-	"github.com/y0ssar1an/q"
 )
 
 func TestLoadSwaggerYaml(t *testing.T) {
@@ -14,5 +13,31 @@ func TestLoadSwaggerYaml(t *testing.T) {
 	if spec == nil {
 		t.Errorf("Error loading yaml. No error, but spec in nil: %s", err)
 	}
-	q.Q(spec)
+
+	// Test Topic (path) extraction.
+	list := spec.Topics()
+	expected := []string{"/pets", "/pets/{id}"}
+	if !reflect.DeepEqual(list, expected) {
+		t.Errorf("Expecting topics %v, got %v.", expected, list)
+	}
+
+	// Test Operations extraction (filtered and unfiltered)
+	list = spec.Operations("")
+	expected = []string{"/pets/{id}.get", "addPet", "deletePet", "findPets"}
+	if !reflect.DeepEqual(list, expected) {
+		t.Errorf("Expecting operations \n    %#v, \ngot %#v.", expected, list)
+	}
+	list = spec.Operations("/pets")
+	expected = []string{"addPet", "findPets"}
+	if !reflect.DeepEqual(list, expected) {
+		t.Errorf("Expecting operations \n    %#v, \ngot %#v.", expected, list)
+	}
+
+	// // Test Scenarios extraction (filtered and unfiltered)
+	// list = spec.Operations("")
+	// expected = []string{"/pets/{id}.get", "addPet", "deletePet", "findPets"}
+	// if !reflect.DeepEqual(list, expected) {
+	// 	t.Errorf("Expecting operations \n    %#v, \ngot %#v.", expected, list)
+	// }
+
 }

@@ -20,13 +20,27 @@ topic or scenarios that exist.
 
 */
 type Describer interface {
+	// usually paths or resource types (first path segment)
 	Topics() (TopicIDs []string)
-	Scenarios(topicID string) (ScenarioIDs []string)
+
+	// Operations usually HTTPVERB + path or an id indicating it
+	Operations(topicId string) (OperationIDs []string)
+
+	// Scenarios varios status responses for an endpoint, but for embedded tests, can also be richer
+	Scenarios(operationID string) (ScenarioIDs []string)
+
+	// Something that points to an actual Request Response pair. They may also
+	// Requests incorporate mimetype, otherwise the first example is used.
 	Requests(topicID, scenarioID string) (RequestIDs []string)
+
+	// Types names of structures defined in the specification
 	Types() (typeIDs []string)
 
-	// Get request applies any params to path and query, returning a request and the expected response.
-	// The params is a list of strings, [name1, value1, name2, value2, ...]. Keys should have one
+	// GetRequest applies any params to path, query, and body template,
+	// returning a request and the expected response.
+	//
+	// requestID: a string that uniquely identifies a request response pair
+	// params:  a list of strings, [name1, value1, name2, value2, ...]. Keys should have one
 	// of these prefixes:
 	//
 	// 	  ":" - indicates an html header as a string
@@ -34,5 +48,8 @@ type Describer interface {
 	//    "=" - treated as a raw string in path and body templating, ADD QUOTES if you want quotes.
 	GetRequest(requestID string, params []string, body string) (
 		req *http.Request, expected *http.Response, err error)
+
+	// GetSchema gets a described schema from the specification.  Might actually be better to
+	// pass in a structure explorer and compare, since Resource is one level only.
 	GetSchema(typeID string) *describers.Resource
 }

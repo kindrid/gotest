@@ -73,7 +73,7 @@ paths:
   /pets/{id}:
     get:
       description: Returns a user based on a single ID, if the user does not have access to the pet
-      operationId: find pet by id
+      operationId:
       parameters:
         - name: id
           in: path
@@ -120,12 +120,12 @@ definitions:
 
   NewPet:
     required:
-      - name  
+      - name
     properties:
       name:
         type: string
       tag:
-        type: string    
+        type: string
 
   Error:
     required:
