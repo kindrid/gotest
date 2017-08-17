@@ -29,9 +29,10 @@ type Describer interface {
 	// Scenarios varios status responses for an endpoint, but for embedded tests, can also be richer
 	Scenarios(operationID string) (ScenarioIDs []string)
 
-	// Something that points to an actual Request Response pair. They may also
+	// Requests returns a list of id's for items that points to an actual Request
+	// Response pair. They may also
 	// Requests incorporate mimetype, otherwise the first example is used.
-	Requests(topicID, scenarioID string) (RequestIDs []string)
+	Requests(scenarioID string) (RequestIDs []string)
 
 	// Types names of structures defined in the specification
 	Types() (typeIDs []string)
@@ -40,16 +41,22 @@ type Describer interface {
 	// returning a request and the expected response.
 	//
 	// requestID: a string that uniquely identifies a request response pair
-	// params:  a list of strings, [name1, value1, name2, value2, ...]. Keys should have one
-	// of these prefixes:
+	// params:  a list of strings, [key1, value1, key2, value2, ...].
+	//
+	// Keys must have one of these prefixes:
 	//
 	// 	  ":" - indicates an html header as a string
 	//    "&" - indicates a URL param as a string
 	//    "=" - treated as a raw string in path and body templating, ADD QUOTES if you want quotes.
-	GetRequest(requestID string, params []string, body string) (
+	GetRequest(requestID string, body string, params ...string) (
 		req *http.Request, expected *http.Response, err error)
 
 	// GetSchema gets a described schema from the specification.  Might actually be better to
-	// pass in a structure explorer and compare, since Resource is one level only.
+	// pass in a structure explorer and compare, since Resource is one level only. Otherwise,
+	// what format is the resource schema? Could use the custom Resource, but as mentioned, that's
+	// one level only. There's github.com/gima/govalid which is nice and Go-like. There's
+	// https://github.com/xeipuuv/gojsonschema which introduces the intricacies of
+	// jsonschema. There's the github.com/go-openapi/spec.Schema which is pre-built
+	// to handle swagger, but might not handle other things.
 	GetSchema(typeID string) *describers.Resource
 }
