@@ -240,8 +240,6 @@ func (ss *SwaggerDescriber) makeResponse(sr *swaggerRequest) (result *http.Respo
 
 // GetSchema implements the Describer interface
 func (ss *SwaggerDescriber) GetSchema(typeID string) (result interface{}, err error) {
-	// schema := ss.swagger.Definitions[typeID]
-	// q.Q(schema)
 	var ok bool
 	if result, ok = ss.swagger.Definitions[typeID]; !ok {
 		err = fmt.Errorf("no type definition found for '%s'", typeID)
