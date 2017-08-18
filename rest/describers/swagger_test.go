@@ -1,10 +1,10 @@
 package describers
 
 import (
+	"bytes"
 	"reflect"
+	"strings"
 	"testing"
-
-	"github.com/y0ssar1an/q"
 )
 
 func TestLoadSwaggerYaml(t *testing.T) {
@@ -52,7 +52,7 @@ func TestLoadSwaggerYaml(t *testing.T) {
 	// Test Sample request formation
 	reqID := "addPet.200.0"
 	req, rsp, err := spec.GetRequest(reqID, "")
-	q.Q("\n=======\n\n", req, rsp, err)
+
 	if err != nil {
 		t.Errorf("error making request %s", reqID)
 	}
@@ -61,6 +61,16 @@ func TestLoadSwaggerYaml(t *testing.T) {
 	}
 	if rsp == nil {
 		t.Errorf("nil response for %s", reqID)
+	}
+	if rsp.Body == nil {
+		t.Errorf("nil response body for %s", reqID)
+	}
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(rsp.Body)
+	body := buf.String()
+	if !strings.Contains(body, `"properties":{"id"`) {
+		t.Errorf("response body for '%s' doesn't look right: %s", reqID, body)
 	}
 
 	// Test Types extraction

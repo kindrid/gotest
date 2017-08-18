@@ -11,10 +11,17 @@ Each version should group changes to describe their impact on the project, as fo
 - **Fixed**: for any bug fixes.
 - **Security**: to invite users to upgrade in case of vulnerabilities.
 
+## [1.2.0] 2017-08-17
+### Added
+- Forming example requests and responses.
+- Harness is ready to test for CI usage
+### Changed
+- Describer interface return values changed slightly
+
 ## [1.1.0] 2017-08-15
 ### Added
 - RESTHarness for testing RESTful specs
-- Swagger support for RESTHarness
+- Swagger support for RESTHarness (not complete yet)
 
 ## [1.0.0] 2017-04-11
 ### Added

@@ -1,10 +1,11 @@
 package describers
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/go-openapi/analysis"
@@ -14,57 +15,66 @@ import (
 
 // SwaggerDescriber provides restful scenarios from a swagger file.
 type SwaggerDescriber struct {
-	Document   *loads.Document
 	aswagger   *analysis.Spec             // analyzed swagger doc
 	swagger    *spec.Swagger              // swagger doc (flattened?)
-	operations map[string]*swaggerRequest // mapped by operationID
-	scenarios  map[string]string          // scenarioID to operationID
-	requests   map[string]string          // requestID to scenarioID
-
+	topics     map[string]*spec.PathItem  // path to swagger object containing verbs
+	operations map[string]*swaggerRequest // operationID to partial swagger request
+	scenarios  map[string]*swaggerRequest // scenarioID to partial swagger request
+	requests   map[string]*swaggerRequest // requestID to swagger request
+	urlBase    string                     // e.g. http://localhost:8081
 }
 
 type swaggerRequest struct {
-	path      string
-	method    string
-	operation *spec.Operation
-	code      int
-	response  *spec.Response
+	method     string
+	path       string
+	operation  *spec.Operation
+	scenarioID string
+	order      int // ordinal location within the scenario
+	code       int
+	response   *spec.Response
 }
 
 // LoadSwaggerDescriber creates a SwaggerDescriber from a yaml or json OpenApi file.
 func LoadSwaggerDescriber(filename string) (result *SwaggerDescriber, err error) {
-	ss := SwaggerDescriber{
-		operations: make(map[string]*swaggerRequest),
-		scenarios:  make(map[string]string),
-		requests:   make(map[string]string),
-	}
-	var doc *loads.Document
+	var doc, doc2 *loads.Document
 	// Read the document
 	if doc, err = loads.Spec(filename); err != nil {
 		return
 	}
+
 	// Check that we actually got well-formed swagger
 	if ver := doc.Spec().Swagger; ver != "2.0" {
 		return nil, fmt.Errorf("expected version 2.0 swagger, got '%s'", ver)
 	}
+
 	// Turn $ref's into literals.
 	// Note analysis.Flatten looks like it does a more complete job
 	opts := &spec.ExpandOptions{}
-	if ss.Document, err = doc.Expanded(opts, opts); err != nil { //opts repeated because of a bug in https://github.com/go-openapi/loads/blob/master/spec.go#L189 easy fix, but in the middle of POCing this
+	if doc2, err = doc.Expanded(opts, opts); err != nil { //opts repeated because of a bug in https://github.com/go-openapi/loads/blob/master/spec.go#L189 easy fix, but in the middle of POCing this
 		return
 	}
 
-	ss.Document = doc
-	ss.aswagger = doc.Analyzer
-	ss.swagger = doc.Spec()
-
+	// Construct the object
+	ss := SwaggerDescriber{
+		aswagger:   doc2.Analyzer,
+		swagger:    doc2.Spec(),
+		topics:     make(map[string]*spec.PathItem),
+		operations: make(map[string]*swaggerRequest),
+		scenarios:  make(map[string]*swaggerRequest),
+		// scenarios:  make(map[string]string),
+		// requests:  make(map[string]string),
+		requests: make(map[string]*swaggerRequest),
+	}
 	if err = ss.populate(); err == nil {
 		result = &ss
 	}
 	return
 }
 
-func (ss *SwaggerDescriber) populate() error {
+func (ss *SwaggerDescriber) populate() (err error) {
+	for path, item := range ss.swagger.Paths.Paths {
+		ss.topics[path] = &item
+	}
 	for method, paths := range ss.aswagger.Operations() {
 		for path, op := range paths {
 			// Ensure a unique operation ID
@@ -75,31 +85,54 @@ func (ss *SwaggerDescriber) populate() error {
 				msg := "more than one operationId `%s`"
 				return fmt.Errorf(msg, op.ID)
 			}
+
 			// Add Operation
-			ss.operations[op.ID] = &swaggerRequest{path: path, method: method, operation: op}
+			operation := swaggerRequest{path: path, method: method, operation: op}
+			ss.operations[op.ID] = &operation
 
-			// Populate Scenarios
-			if op.Responses != nil {
-				if op.Responses.Default != nil {
-					ss.scenarios[op.ID+".default"] = op.ID
-				}
-				for status := range op.Responses.StatusCodeResponses {
-					ss.scenarios[op.ID+"."+strconv.Itoa(status)] = op.ID
-				}
-			}
-
-			// Populate Requests (for now, one per scenario)
-			for sc := range ss.scenarios {
-				ss.requests[sc+".0"] = sc
+			if err = ss.populateScenarios(operation); err != nil {
+				return
 			}
 		}
 	}
 	return nil
 }
 
+func (ss *SwaggerDescriber) populateScenarios(template swaggerRequest) (err error) {
+	op := template.operation
+	if op.Responses.Default != nil {
+		rsp := op.Responses.Default
+		sc := template
+		sc.scenarioID = fmt.Sprintf("%s.%s", sc.operation.ID, "default")
+		sc.code = 0
+		ss.scenarios[sc.scenarioID] = &sc
+		ss.populateRequests(sc, []*spec.Response{rsp})
+	}
+	for status, rsp := range op.Responses.StatusCodeResponses {
+		sc := template
+		sc.scenarioID = fmt.Sprintf("%s.%d", sc.operation.ID, status)
+		sc.code = status
+		ss.scenarios[sc.scenarioID] = &sc
+		ss.populateRequests(sc, []*spec.Response{&rsp})
+	}
+	return
+}
+
+func (ss *SwaggerDescriber) populateRequests(template swaggerRequest, responses []*spec.Response) (err error) {
+	// Populate Requests (for now, one per scenario)
+	for i, rsp := range responses {
+		rq := template
+		rq.response = rsp
+		rq.order = i
+		requestID := fmt.Sprintf("%s.%d", rq.scenarioID, i)
+		ss.requests[requestID] = &rq
+	}
+	return
+}
+
 // Topics lists the paths in the swagger document
 func (ss *SwaggerDescriber) Topics() (result []string) {
-	for path := range ss.Document.Analyzer.AllPaths() {
+	for path := range ss.aswagger.AllPaths() {
 		result = append(result, path)
 	}
 	sort.Strings(result)
@@ -119,9 +152,9 @@ func (ss *SwaggerDescriber) Operations(topicID string) (result []string) {
 
 // Scenarios lists the different status code responses of an operation (swagger verb + path)
 func (ss *SwaggerDescriber) Scenarios(operationID string) (result []string) {
-	for sc, op := range ss.scenarios {
-		if operationID == "" || operationID == op {
-			result = append(result, sc)
+	for scID, req := range ss.scenarios {
+		if operationID == "" || operationID == req.operation.ID {
+			result = append(result, scID)
 		}
 	}
 	sort.Strings(result)
@@ -132,9 +165,9 @@ func (ss *SwaggerDescriber) Scenarios(operationID string) (result []string) {
 // Swagger 2.0 only supports one request per return code, but some systems may
 // allow more to represent tests
 func (ss *SwaggerDescriber) Requests(scenarioID string) (result []string) {
-	for req, sc := range ss.requests {
-		if scenarioID == "" || scenarioID == sc {
-			result = append(result, req)
+	for id, req := range ss.requests {
+		if scenarioID == "" || scenarioID == req.scenarioID {
+			result = append(result, id)
 		}
 	}
 	sort.Strings(result)
@@ -143,8 +176,7 @@ func (ss *SwaggerDescriber) Requests(scenarioID string) (result []string) {
 
 // Types lists the embedded type definitions in the swagger spec.
 func (ss *SwaggerDescriber) Types() (result []string) {
-
-	for name, _ := range ss.swagger.Definitions {
+	for name := range ss.swagger.Definitions {
 		result = append(result, name)
 	}
 	sort.Strings(result)
@@ -154,35 +186,63 @@ func (ss *SwaggerDescriber) Types() (result []string) {
 // GetRequest implements the Describer interface
 func (ss *SwaggerDescriber) GetRequest(requestID string, body string, params ...string) (
 	req *http.Request, expected *http.Response, err error) {
-	// method, path, op, code, rsp, err := ss.getRequestParents(requestID)
-	return
-}
-
-func (ss *SwaggerDescriber) getRequestParents(requestID string) (
-	method, path string, op *spec.Operation, code int, rsp *spec.Response, err error,
-) {
-	scenarioID := ss.requests[requestID]
-	operation := ss.operations[scenarioID]
-	method = operation.method
-	path = operation.path
-	op = operation.operation
-
-	requestPortion := requestID[len(scenarioID)+1:]
-	code, err = strconv.Atoi(requestPortion)
-	if err == nil {
-		if code == 0 { // default response
-			rsp = op.Responses.Default
-		} else {
-			rspz := (op.Responses.StatusCodeResponses[code])
-			rsp = &rspz
-		}
+	sreq, ok := ss.requests[requestID]
+	if !ok {
+		err = fmt.Errorf("cannot find requestID==%s", requestID)
+		return
+	}
+	if req, err = ss.makeRequest(sreq, body, params...); err != nil {
+		return
+	}
+	if expected, err = ss.makeResponse(sreq); err == nil {
+		expected.Request = req
 	}
 	return
 }
 
+func (ss *SwaggerDescriber) makeRequest(sr *swaggerRequest, body string, params ...string) (result *http.Request, err error) {
+	// topicParams := ss.topics[sr.path].Parameters
+	// opParams := sr.operation.Parameters // Location is path, query, header, body, formData
+
+	url := ss.urlBase + sr.path
+	// TODO apply path param and query params
+	result, err = http.NewRequest(sr.method, url, strings.NewReader(body))
+	if err != nil {
+		return
+	}
+	// TODO apply all the layers of headers
+	// not yet handling multipart form param locations
+	return
+}
+
+func (ss *SwaggerDescriber) makeResponse(sr *swaggerRequest) (result *http.Response, err error) {
+	result = &http.Response{
+		Status:     http.StatusText(sr.code),
+		StatusCode: sr.code,
+		Header:     make(http.Header),
+	}
+	result.Header.Add("x-swagger-description", sr.response.Description)
+	for k, h := range sr.response.Headers {
+		v, ok := h.Default.(string)
+		if !ok {
+			v = fmt.Sprintf("could not parse %#v", h.Default)
+		}
+		result.Header.Add(k, v)
+	}
+
+	result.Header.Add("x-swagger-body-type", "body is schema.json")
+	// could also construct an example from the schema defaults
+	var schema []byte
+	schema, err = sr.response.Schema.MarshalJSON()
+	result.Body = ioutil.NopCloser(bytes.NewReader(schema))
+	return
+}
+
 // GetSchema implements the Describer interface
-func (ss *SwaggerDescriber) GetSchema(typeID string) (result *Resource) {
-	// schema := ss.swagger.Definitions[typeID]
-	// q.Q(schema)
+func (ss *SwaggerDescriber) GetSchema(typeID string) (result interface{}, err error) {
+	var ok bool
+	if result, ok = ss.swagger.Definitions[typeID]; !ok {
+		err = fmt.Errorf("no type definition found for '%s'", typeID)
+	}
 	return
 }
