@@ -2,8 +2,6 @@ package rest
 
 import (
 	"net/http"
-
-	"github.com/kindrid/gotest/rest/describers"
 )
 
 /* Describer holds a description of an API in a hierarchy:
@@ -58,5 +56,6 @@ type Describer interface {
 	// https://github.com/xeipuuv/gojsonschema which introduces the intricacies of
 	// jsonschema. There's the github.com/go-openapi/spec.Schema which is pre-built
 	// to handle swagger, but might not handle other things.
-	GetSchema(typeID string) *describers.Resource
+	// for now, returns an interface to be interpreted however
+	GetSchema(typeID string) (interface{}, error)
 }

@@ -1,7 +1,9 @@
 package describers
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"sort"
 	"strings"
@@ -15,6 +17,7 @@ import (
 type SwaggerDescriber struct {
 	aswagger   *analysis.Spec             // analyzed swagger doc
 	swagger    *spec.Swagger              // swagger doc (flattened?)
+	topics     map[string]*spec.PathItem  // path to swagger object containing verbs
 	operations map[string]*swaggerRequest // operationID to partial swagger request
 	scenarios  map[string]*swaggerRequest // scenarioID to partial swagger request
 	requests   map[string]*swaggerRequest // requestID to swagger request
@@ -55,6 +58,7 @@ func LoadSwaggerDescriber(filename string) (result *SwaggerDescriber, err error)
 	ss := SwaggerDescriber{
 		aswagger:   doc2.Analyzer,
 		swagger:    doc2.Spec(),
+		topics:     make(map[string]*spec.PathItem),
 		operations: make(map[string]*swaggerRequest),
 		scenarios:  make(map[string]*swaggerRequest),
 		// scenarios:  make(map[string]string),
@@ -68,6 +72,9 @@ func LoadSwaggerDescriber(filename string) (result *SwaggerDescriber, err error)
 }
 
 func (ss *SwaggerDescriber) populate() (err error) {
+	for path, item := range ss.swagger.Paths.Paths {
+		ss.topics[path] = &item
+	}
 	for method, paths := range ss.aswagger.Operations() {
 		for path, op := range paths {
 			// Ensure a unique operation ID
@@ -187,18 +194,24 @@ func (ss *SwaggerDescriber) GetRequest(requestID string, body string, params ...
 	if req, err = ss.makeRequest(sreq, body, params...); err != nil {
 		return
 	}
-	expected, err = ss.makeResponse(sreq)
+	if expected, err = ss.makeResponse(sreq); err == nil {
+		expected.Request = req
+	}
 	return
 }
 
 func (ss *SwaggerDescriber) makeRequest(sr *swaggerRequest, body string, params ...string) (result *http.Request, err error) {
-	url := ss.urlBase + sr.path // TODO apply path param and query params
+	// topicParams := ss.topics[sr.path].Parameters
+	// opParams := sr.operation.Parameters // Location is path, query, header, body, formData
+
+	url := ss.urlBase + sr.path
+	// TODO apply path param and query params
 	result, err = http.NewRequest(sr.method, url, strings.NewReader(body))
 	if err != nil {
 		return
 	}
 	// TODO apply all the layers of headers
-	// any other param locations for swagger?
+	// not yet handling multipart form param locations
 	return
 }
 
@@ -206,13 +219,32 @@ func (ss *SwaggerDescriber) makeResponse(sr *swaggerRequest) (result *http.Respo
 	result = &http.Response{
 		Status:     http.StatusText(sr.code),
 		StatusCode: sr.code,
+		Header:     make(http.Header),
 	}
+	result.Header.Add("x-swagger-description", sr.response.Description)
+	for k, h := range sr.response.Headers {
+		v, ok := h.Default.(string)
+		if !ok {
+			v = fmt.Sprintf("could not parse %#v", h.Default)
+		}
+		result.Header.Add(k, v)
+	}
+
+	result.Header.Add("x-swagger-body-type", "body is schema.json")
+	// could also construct an example from the schema defaults
+	var schema []byte
+	schema, err = sr.response.Schema.MarshalJSON()
+	result.Body = ioutil.NopCloser(bytes.NewReader(schema))
 	return
 }
 
 // GetSchema implements the Describer interface
-func (ss *SwaggerDescriber) GetSchema(typeID string) (result *Resource) {
+func (ss *SwaggerDescriber) GetSchema(typeID string) (result interface{}, err error) {
 	// schema := ss.swagger.Definitions[typeID]
 	// q.Q(schema)
+	var ok bool
+	if result, ok = ss.swagger.Definitions[typeID]; !ok {
+		err = fmt.Errorf("no type definition found for '%s'", typeID)
+	}
 	return
 }
