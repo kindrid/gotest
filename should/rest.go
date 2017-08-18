@@ -57,11 +57,11 @@ func ReadResponseBody(rsp *http.Response, parser StructureParser) (result *Bodie
 // 	  ":" - indicates an html header as a string
 //    "&" - indicates a URL param as a string
 //    "=" - treated as a raw string in path and body templating, ADD QUOTES if you want quotes.
-func (har *RESTHarness) RunRequest(requestID string, params []string, body string) (result *RESTExchange) {
+func (har *RESTHarness) RunRequest(requestID string, body string, params ...string) (result *RESTExchange) {
 	var expected, actual *http.Response
 	// Grab information from the Describer (API specification)
 	result = &RESTExchange{}
-	result.Request, expected, result.Err = har.API.GetRequest(requestID, params, body)
+	result.Request, expected, result.Err = har.API.GetRequest(requestID, body, params...)
 	if result.Err != nil {
 		return
 	}
@@ -90,8 +90,8 @@ func (har *RESTHarness) RunRequest(requestID string, params []string, body strin
 }
 
 // TestRequest works like RunRequest but makes some basic assertions about the return.
-func (har *RESTHarness) TestRequest(t *testing.T, requestID string, params []string, body string) (result *RESTExchange) {
-	result = har.RunRequest(requestID, params, body)
+func (har *RESTHarness) TestRequest(t *testing.T, requestID string, body string, params ...string) (result *RESTExchange) {
+	result = har.RunRequest(requestID, body, params...)
 
 	fail := ""
 	if result.Err != nil {
