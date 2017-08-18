@@ -18,6 +18,7 @@ type SwaggerDescriber struct {
 	operations map[string]*swaggerRequest // operationID to partial swagger request
 	scenarios  map[string]*swaggerRequest // scenarioID to partial swagger request
 	requests   map[string]*swaggerRequest // requestID to swagger request
+	urlBase    string                     // e.g. http://localhost:8081
 }
 
 type swaggerRequest struct {
@@ -178,22 +179,34 @@ func (ss *SwaggerDescriber) Types() (result []string) {
 // GetRequest implements the Describer interface
 func (ss *SwaggerDescriber) GetRequest(requestID string, body string, params ...string) (
 	req *http.Request, expected *http.Response, err error) {
-	swagRequest, ok := ss.requests[requestID]
+	sreq, ok := ss.requests[requestID]
 	if !ok {
 		err = fmt.Errorf("cannot find requestID==%s", requestID)
 		return
 	}
-
-	req = &http.Request{
-		// URL:   swagRequest.path,
-		Method: swagRequest.method,
+	if req, err = ss.makeRequest(sreq, body, params...); err != nil {
+		return
 	}
+	expected, err = ss.makeResponse(sreq)
+	return
+}
 
-	expected = &http.Response{
-		Status:     http.StatusText(swagRequest.code),
-		StatusCode: swagRequest.code,
+func (ss *SwaggerDescriber) makeRequest(sr *swaggerRequest, body string, params ...string) (result *http.Request, err error) {
+	url := ss.urlBase + sr.path // TODO apply path param and query params
+	result, err = http.NewRequest(sr.method, url, strings.NewReader(body))
+	if err != nil {
+		return
 	}
-	// method, path, op, code, rsp, err := ss.getRequestParents(requestID)
+	// TODO apply all the layers of headers
+	// any other param locations for swagger?
+	return
+}
+
+func (ss *SwaggerDescriber) makeResponse(sr *swaggerRequest) (result *http.Response, err error) {
+	result = &http.Response{
+		Status:     http.StatusText(sr.code),
+		StatusCode: sr.code,
+	}
 	return
 }
 
