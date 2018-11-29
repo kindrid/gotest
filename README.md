@@ -12,17 +12,17 @@ Look at these [GoDocs for the latest documentation](https://godoc.org/github.com
 
 Grab the package and import it:
 
-  go get github.com/kindrid/gotest
-  import "github.com/kindrid/gotest"
-  import "github.com/kindrid/gotest/should"
+    go get github.com/kindrid/gotest
+    import "github.com/kindrid/gotest"
+    import "github.com/kindrid/gotest/should"
 
 Code normal `testing`-style tests, but use `gotest.Assert` and assertions found
 in `should` like this:
 
-  gotest.Assert(t, actualJson, should.HaveFields,
-    "name", reflect.String,
-    "children", reflect.Map,
-    "hobbies", reflect.Slice)
+    gotest.Assert(t, actualJson, should.HaveFields,
+      "name", reflect.String,
+      "children", reflect.Map,
+      "hobbies", reflect.Slice)
 
 Assertions are just functions that accept interfaces and return a non-empty string if there's an error. Look at `gotest.should.Assertion` for the details. Look at `should/doc.go` and `should/assertion.go` ofr more details.
 
